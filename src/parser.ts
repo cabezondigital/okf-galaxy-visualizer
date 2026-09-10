@@ -185,20 +185,23 @@ export class OkfVaultParser {
 
       for (const link of wikilinks) {
         const targetSlug = this.slugify(link);
-        if (nodeMap.has(targetSlug) && targetSlug !== node.id) {
-          const edgeId = `${node.id}-->${targetSlug}`;
-          const reverseEdgeId = `${targetSlug}-->${node.id}`;
+        if (nodeMap.has(targetSlug)) {
+          const targetNode = nodeMap.get(targetSlug);
+          if (targetNode && targetNode.id !== node.id) {
+            const edgeId = `${node.id}-->${targetNode.id}`;
+            const reverseEdgeId = `${targetNode.id}-->${node.id}`;
 
-          // Avoid duplicate undirected edges
-          const exists = edges.some(e => e.id === edgeId || e.id === reverseEdgeId);
-          if (!exists) {
-            edges.push({
-              id: edgeId,
-              source: node.id,
-              target: targetSlug,
-              label: 'linked_to',
-              isStructural: false,
-            });
+            // Avoid duplicate undirected edges
+            const exists = edges.some(e => e.id === edgeId || e.id === reverseEdgeId);
+            if (!exists) {
+              edges.push({
+                id: edgeId,
+                source: node.id,
+                target: targetNode.id,
+                label: 'linked_to',
+                isStructural: false,
+              });
+            }
           }
         }
       }

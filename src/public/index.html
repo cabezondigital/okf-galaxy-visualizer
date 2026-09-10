@@ -490,10 +490,10 @@
       <div class="brand-title">🌌 OKF Galaxy Visualizer</div>
       <div class="badge">OKF v0.2 Standard</div>
       <div class="mode-selector">
-        <button id="mode-spherical-btn" class="mode-btn active" onclick="switchVisualizationMode('spherical')" title="Corteza esférica neuronal 3D">
+        <button id="mode-spherical-btn" class="mode-btn active" onclick="switchVisualizationMode('spherical')" title="3D Spherical Neural Cortex Mode">
           <span class="mode-icon">🌐</span> 3D Spherical Cortex
         </button>
-        <button id="mode-galaxy-btn" class="mode-btn" onclick="switchVisualizationMode('galaxy')" title="Galaxia 3D: Sistemas estelares y órbitas planetarias">
+        <button id="mode-galaxy-btn" class="mode-btn" onclick="switchVisualizationMode('galaxy')" title="3D Galaxy Mode: Stellar systems and planetary orbits">
           <span class="mode-icon">🌌</span> 3D Galaxy
         </button>
       </div>
@@ -518,7 +518,7 @@
       </div>
 
       <!-- Executive Action: Refresh Graph -->
-      <button class="learn-btn" id="learn-btn" onclick="triggerForcedLearning()" title="Forzar consolidación diaria de memoria OKF y síntesis reflexiva">
+      <button class="learn-btn" id="learn-btn" onclick="triggerForcedLearning()" title="Refresh Graph & Re-index Vault">
         <span>⚡</span>
         <span>Refresh Graph</span>
       </button>
@@ -534,7 +534,7 @@
     <!-- SEMITRANSPARENT MINI-SPHERE ROTATION & SUBTLE ZOOM HUD -->
     <div class="mini-sphere-hud">
       <!-- Mini Glass Orb with Chevrons -->
-      <div class="glass-orb" id="glass-orb" title="Arrastra la esfera para rotar el cerebro 3D en cualquier ángulo">
+      <div class="glass-orb" id="glass-orb" title="Drag orb to rotate 3D graph">
         <div class="orb-arrow up" onclick="rotateSphere(0, -0.22)" title="Inclinar Arriba">▲</div>
         <div class="orb-arrow down" onclick="rotateSphere(0, 0.22)" title="Inclinar Abajo">▼</div>
         <div class="orb-arrow left" onclick="rotateSphere(0.22, 0)" title="Girar Izquierda">◀</div>
@@ -550,8 +550,8 @@
       </div>
 
       <!-- Line Brightness Slider Capsule in Left Hub -->
-      <div class="line-brightness-hud" title="Ajustar brillo e intensidad de las líneas y sinapsis">
-        <span class="brightness-icon" title="Brillo de líneas">✨</span>
+      <div class="line-brightness-hud" title="Adjust line & synapse brightness">
+        <span class="brightness-icon" title="Line Brightness">✨</span>
         <input 
           type="range" 
           id="link-brightness-slider" 
@@ -559,10 +559,10 @@
           min="0.1" 
           max="2.5" 
           step="0.05" 
-          value="1.0" 
+          value="2.0" 
           oninput="onLinkBrightnessChange(this.value)"
         />
-        <span id="brightness-val-text" class="brightness-val">100%</span>
+        <span id="brightness-val-text" class="brightness-val">200%</span>
       </div>
 
       <!-- Minimal Auto-Rotate Pill -->
@@ -576,7 +576,7 @@
       <div class="drawer-header">
         <div>
           <span id="drawer-group" class="node-type-tag">TIPO</span>
-          <h2 id="drawer-title" class="node-title">Título del Nodo</h2>
+          <h2 id="drawer-title" class="node-title">Node Title</h2>
           <div id="drawer-tags" class="node-tags"></div>
         </div>
         <button class="close-btn" onclick="closeDrawer()">&times;</button>
@@ -585,7 +585,7 @@
       <div id="drawer-image-container"></div>
 
       <div>
-        <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Contenido / Memoria OKF</h4>
+        <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">OKF Markdown Content</h4>
         <div id="drawer-content" class="content-box"></div>
       </div>
 
@@ -600,7 +600,7 @@
     let graphData = { nodes: [], edges: [] };
     let graphInstance = null;
     let autoRotate = true;
-    let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '1.0');
+    let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '2.0');
 
     function onLinkBrightnessChange(val) {
       linkBrightness = parseFloat(val);
@@ -643,12 +643,15 @@
     function setupGalaxyParameters(nodes) {
       if (!nodes || !nodes.length) return;
       const roots = nodes.filter(n => n.isRoot);
+      const rootCount = Math.max(roots.length, 1);
 
       roots.forEach((rn, idx) => {
+        const angle = (idx / rootCount) * Math.PI * 2;
+        const radius = 180;
         const anchor = GALAXY_CLUSTERS[rn.group] || {
-          x: Math.cos(idx * 1.25) * 120,
-          y: Math.sin(idx * 1.25) * 60,
-          z: Math.sin(idx * 2.1) * 120
+          x: Math.cos(angle) * radius,
+          y: (idx % 2 === 0 ? 35 : -35),
+          z: Math.sin(angle) * radius
         };
         rn.starTargetX = anchor.x;
         rn.starTargetY = anchor.y;
@@ -757,7 +760,7 @@
             .strength(l => l.isStructural ? 0.05 : 0.001);
         }
       } else {
-        showToast('🌐 Modo 3D Spherical Cortex: Dinámica de corteza esférica neuronal');
+        showToast('🌐 3D Spherical Cortex Mode: Cortical surface nodes with synapse arcs');
 
         // Restauración limpia e inmediata sobre la corteza esférica de Fibonacci
         const roots = nodes.filter(n => n.isRoot);
@@ -791,7 +794,7 @@
       }
 
       if (graphInstance) {
-        graphInstance.d3Alpha(0.6).d3ReheatSimulation();
+        graphInstance.d3ReheatSimulation();
       }
     }
 
@@ -933,7 +936,7 @@
       const orig = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = "<span>⏳</span> <span>Consolidando...</span>";
-      showToast("🧠 Analizando correos, agenda y logs para consolidar memoria OKF...");
+      showToast("🧠 Re-indexing vault and synthesizing graph...");
 
       try {
         const res = await fetch("/consolidate-daily-memory", {
@@ -1119,8 +1122,8 @@
             // PESO / POTENCIA: Nodes con más sinapsis y peso son más grandes, intensos y poderosos
             const powerLevel = isRoot ? 12 : Math.min(10, degree + Math.round((node.size || 20) / 10));
 
-            // 1. Núcleo Estelar y Planetario (Delicado, nítido y astronómico)
-            const baseSize = isRoot ? 3.6 : Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
+            // 1. Núcleo Estelar y Planetario (Luminoso, nítido y astronómico)
+            const baseSize = isRoot ? 6.0 : Math.max(2.0, Math.min(4.2, 1.8 + Math.log2(powerLevel + 1) * 0.55));
             const sphereGeo = new THREE.SphereGeometry(baseSize, 32, 24);
             const sphereMat = new THREE.MeshBasicMaterial({ 
               color: isRoot ? 0xffffff : nodeColor 
@@ -1128,16 +1131,16 @@
             const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
             group.add(coreMesh);
 
-            // 2. Corona de Resplandor Suave (Aura nítida sin nubes invasivas)
+            // 2. Corona de Resplandor Suave (Aura nítida y vibrante)
             const glowTex = getGlowTexture(nodeColor);
             const glowMat = new THREE.SpriteMaterial({
               map: glowTex,
               transparent: true,
               blending: THREE.AdditiveBlending,
-              opacity: isRoot ? 0.82 : (0.22 + Math.min(powerLevel, 5) * 0.02)
+              opacity: isRoot ? 0.95 : Math.min(0.85, 0.45 + Math.min(powerLevel, 5) * 0.05)
             });
             const glowSprite = new THREE.Sprite(glowMat);
-            const glowScale = baseSize * (isRoot ? 2.4 : 1.5);
+            const glowScale = baseSize * (isRoot ? 3.2 : 2.2);
             glowSprite.scale.set(glowScale, glowScale, 1);
             group.add(glowSprite);
 
@@ -1172,18 +1175,21 @@
             for (let i = 0; i < tId.length; i++) hash += tId.charCodeAt(i);
             return (hash % 6.28);
           })
-          // Enlaces Duros vs Enlaces de Relación: Líneas limpias antialiased sin poliedros facetados
+          // Luminous High-Visibility Links and Flowing Energy Photons
           .linkColor(link => {
+            const alpha = Math.min(1.0, 0.65 * linkBrightness);
             if (link.isStructural) {
-              const alpha = Math.min(1.0, 0.45 * linkBrightness);
-              return `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
-            } else {
-              const alpha = Math.min(1.0, 0.35 * linkBrightness);
-              return `rgba(56, 189, 248, ${alpha.toFixed(3)})`;
+              return `rgba(255, 255, 255, ${(alpha * 0.7).toFixed(2)})`;
             }
+            const src = link.source;
+            const col = (src && src.color) ? src.color : '#38bdf8';
+            return col;
           })
-          .linkWidth(0)
-          .linkDirectionalParticles(0)
+          .linkWidth(link => link.isStructural ? 1.2 : 2.0)
+          .linkDirectionalParticles(link => link.isStructural ? 0 : 3)
+          .linkDirectionalParticleWidth(2.6)
+          .linkDirectionalParticleSpeed(0.007)
+          .linkDirectionalParticleColor(link => (link.source && link.source.color) ? link.source.color : '#38bdf8')
           .onNodeClick(node => focusNode(node))
           .onNodeDrag((node, translate) => {
             if (!node) return;
@@ -1261,7 +1267,7 @@
               if (n.isRoot) {
                 // ⭐ SOL / ESTRELLA CENTRAL
                 if (!n.__isDraggingRoot) {
-                  const center = GALAXY_CLUSTERS[n.group] || { x: 0, y: 0, z: 0 };
+                  const center = { x: n.starTargetX || 0, y: n.starTargetY || 0, z: n.starTargetZ || 0 };
                   n.vx = (n.vx || 0) + (center.x - n.x) * 0.06;
                   n.vy = (n.vy || 0) + (center.y - n.y) * 0.06;
                   n.vz = (n.vz || 0) + (center.z - n.z) * 0.06;
@@ -1427,7 +1433,7 @@
             const ringMat = new THREE.LineBasicMaterial({
               color: hexColor,
               transparent: true,
-              opacity: 0.20,
+              opacity: 0.55 * linkBrightness,
               blending: THREE.AdditiveBlending
             });
             const ringLine = new THREE.LineLoop(ringGeo, ringMat);
@@ -1678,7 +1684,7 @@
       const connectedEdges = graphData.edges.filter(e => e.source === node.id || e.target === node.id);
       const linksContainer = document.getElementById('drawer-wikilinks');
       if (connectedEdges.length === 0) {
-        linksContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem;">Sin enlaces directos</span>';
+        linksContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem;">No direct connections</span>';
       } else {
         linksContainer.innerHTML = connectedEdges.map(e => {
           const neighborId = e.source === node.id ? e.target : e.source;
