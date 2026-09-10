@@ -837,56 +837,56 @@
     
     function createRootLabelSprite(text, colorHex) {
       const canvas = document.createElement('canvas');
-      canvas.width = 280;
-      canvas.height = 64;
+      canvas.width = 220;
+      canvas.height = 42;
       const ctx = canvas.getContext('2d');
 
-      ctx.fillStyle = 'rgba(6, 10, 20, 0.78)';
+      ctx.fillStyle = 'rgba(6, 10, 20, 0.82)';
       ctx.strokeStyle = colorHex;
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.roundRect(6, 6, 268, 52, 10);
+      ctx.roundRect(4, 4, 212, 34, 7);
       ctx.fill();
       ctx.stroke();
 
-      ctx.font = 'Bold 18px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.font = 'Bold 13px -apple-system, BlinkMacSystemFont, sans-serif';
       ctx.fillStyle = '#f8fafc';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.shadowColor = colorHex;
-      ctx.shadowBlur = 6;
-      ctx.fillText(text, 140, 32);
+      ctx.shadowBlur = 5;
+      ctx.fillText(text, 110, 21);
 
       const texture = new THREE.CanvasTexture(canvas);
       const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.92 });
       const sprite = new THREE.Sprite(spriteMaterial);
-      sprite.scale.set(48, 11, 1);
+      sprite.scale.set(11.5, 2.2, 1);
       return sprite;
     }
 
     function createLabelSprite(text, colorHex) {
       const canvas = document.createElement('canvas');
-      canvas.width = 300;
-      canvas.height = 70;
+      canvas.width = 200;
+      canvas.height = 38;
       const ctx = canvas.getContext('2d');
 
-      // Glass pill badge
-      ctx.fillStyle = 'rgba(6, 12, 24, 0.88)';
-      ctx.strokeStyle = colorHex || 'rgba(56, 189, 248, 0.6)';
-      ctx.lineWidth = 2;
+      // Micro glass pill badge
+      ctx.fillStyle = 'rgba(7, 12, 22, 0.86)';
+      ctx.strokeStyle = colorHex || 'rgba(56, 189, 248, 0.55)';
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.roundRect(8, 8, 284, 54, 12);
+      ctx.roundRect(3, 3, 194, 32, 6);
       ctx.fill();
       ctx.stroke();
 
-      ctx.font = 'Bold 18px -apple-system, sans-serif';
+      ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.fillStyle = '#f8fafc';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.shadowColor = '#000000';
-      ctx.shadowBlur = 6;
-      const display = text.length > 25 ? text.substring(0, 23) + '…' : text;
-      ctx.fillText(display, 150, 35);
+      ctx.shadowBlur = 4;
+      const display = text.length > 20 ? text.substring(0, 18) + '…' : text;
+      ctx.fillText(display, 100, 19);
 
       const texture = new THREE.CanvasTexture(canvas);
       const spriteMaterial = new THREE.SpriteMaterial({
@@ -896,7 +896,7 @@
         depthWrite: false
       });
       const sprite = new THREE.Sprite(spriteMaterial);
-      sprite.scale.set(48, 11.2, 1);
+      sprite.scale.set(6.8, 1.35, 1);
       sprite.visible = false;
       return sprite;
     }
@@ -1137,11 +1137,11 @@
             const isRoot = !!node.isRoot;
             const degree = nodeDegreeMap.get(node.id) || 1;
 
-            // PESO / POTENCIA: Nodes con más sinapsis y peso son más grandes, intensos y poderosos
+            // PESO / POTENCIA: Nodos con más sinapsis y peso son más grandes y nítidos
             const powerLevel = isRoot ? 12 : Math.min(10, degree + Math.round((node.size || 20) / 10));
 
-            // 1. Núcleo Estelar (Superficie joya radiante según peso)
-            const baseSize = isRoot ? 7.2 : Math.max(3.2, 2.6 + Math.log2(powerLevel + 1) * 1.15);
+            // 1. Núcleo Estelar y Planetario (Delicado, nítido y astronómico)
+            const baseSize = isRoot ? 3.8 : Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
             const sphereGeo = new THREE.SphereGeometry(baseSize, 32, 24);
             const sphereMat = new THREE.MeshBasicMaterial({ 
               color: isRoot ? 0xffffff : nodeColor 
@@ -1149,28 +1149,28 @@
             const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
             group.add(coreMesh);
 
-            // 2. Corona de Resplandor Volumétrico Proporcional a la Potencia
+            // 2. Corona de Resplandor Suave (Aura sutil sin saturar)
             const glowTex = getGlowTexture(nodeColor);
             const glowMat = new THREE.SpriteMaterial({
               map: glowTex,
               transparent: true,
               blending: THREE.AdditiveBlending,
-              opacity: isRoot ? 0.95 : Math.min(0.88, 0.58 + powerLevel * 0.035)
+              opacity: isRoot ? 0.82 : (0.22 + Math.min(powerLevel, 5) * 0.02)
             });
             const glowSprite = new THREE.Sprite(glowMat);
-            const glowScale = baseSize * (isRoot ? 4.5 : (2.8 + Math.min(powerLevel, 8) * 0.22));
+            const glowScale = baseSize * (isRoot ? 2.5 : 1.5);
             glowSprite.scale.set(glowScale, glowScale, 1);
             group.add(glowSprite);
 
             // 3. Labels: Raíces siempre visibles, subnodos aparecen dinámicamente al acercarse
             if (isRoot) {
               const rootSprite = createRootLabelSprite(node.label, nodeColor);
-              rootSprite.position.set(0, baseSize + 9, 0);
+              rootSprite.position.set(0, baseSize + 2.4, 0);
               node.__labelSprite = rootSprite;
               group.add(rootSprite);
             } else {
               const labelSprite = createLabelSprite(node.label, nodeColor);
-              labelSprite.position.set(0, baseSize + 6, 0);
+              labelSprite.position.set(0, baseSize + 1.2, 0);
               node.__labelSprite = labelSprite;
               group.add(labelSprite);
             }
@@ -1195,10 +1195,10 @@
           })
           // Enlaces Duros (Troncales Padre) vs Enlaces de Relación (Wikilinks claramente visibles)
           .linkColor(link => link.isStructural ? 'rgba(255, 255, 255, 0.45)' : 'rgba(56, 189, 248, 0.32)')
-          .linkWidth(link => link.isStructural ? 1.8 : 1.1)
+          .linkWidth(link => link.isStructural ? 1.4 : 0.85)
           .linkDirectionalParticles(link => link.isStructural ? 2 : 1)
           .linkDirectionalParticleSpeed(link => link.isStructural ? 0.002 : 0.005)
-          .linkDirectionalParticleWidth(link => link.isStructural ? 3.0 : 1.8)
+          .linkDirectionalParticleWidth(link => link.isStructural ? 2.2 : 1.4)
           .linkDirectionalParticleColor(link => link.isStructural ? '#ffffff' : '#38bdf8')
           .onNodeClick(node => focusNode(node))
           .onNodeDrag((node, translate) => {
