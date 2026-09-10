@@ -559,13 +559,13 @@
           type="range" 
           id="link-brightness-slider" 
           class="brightness-slider" 
-          min="0.4" 
-          max="3.0" 
+          min="0.2" 
+          max="2.5" 
           step="0.05" 
-          value="1.2" 
+          value="1.0" 
           oninput="onLinkBrightnessChange(this.value)"
         />
-        <span id="brightness-val-text" class="brightness-val">120%</span>
+        <span id="brightness-val-text" class="brightness-val">100%</span>
       </div>
 
       <div id="auto-rotate-pill" class="auto-rotate-pill active" onclick="toggleRotate()">
@@ -603,7 +603,7 @@
     let graphInstance = null;
     let autoRotate = true;
 
-    let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '1.2');
+    let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '1.0');
 
     function onLinkBrightnessChange(val) {
       linkBrightness = parseFloat(val);
@@ -614,17 +614,14 @@
       localStorage.setItem('okf_link_brightness', val);
 
       if (graphInstance) {
-        graphInstance
-          .linkColor(graphInstance.linkColor())
-          .linkWidth(graphInstance.linkWidth())
-          .linkDirectionalParticleWidth(graphInstance.linkDirectionalParticleWidth());
+        graphInstance.linkColor(graphInstance.linkColor());
       }
 
       if (window.__clusterOrbitGroups) {
         Object.values(window.__clusterOrbitGroups).forEach(group => {
           group.traverse(child => {
             if (child.isLine && child.material) {
-              child.material.opacity = Math.max(0.06, Math.min(0.95, 0.22 * linkBrightness));
+              child.material.opacity = Math.max(0.04, Math.min(0.85, 0.22 * linkBrightness));
               child.material.needsUpdate = true;
             }
           });
@@ -803,13 +800,7 @@
       }
 
       if (graphInstance) {
-        if (mode === 'galaxy') {
-          graphInstance.d3AlphaDecay(0);
-          graphInstance.d3VelocityDecay(0.16);
-        } else {
-          graphInstance.d3AlphaDecay(0.02);
-          graphInstance.d3VelocityDecay(0.4);
-        }
+        if (mode === "galaxy") { graphInstance.d3AlphaDecay(0); graphInstance.d3VelocityDecay(0.16); } else { graphInstance.d3AlphaDecay(0.02); graphInstance.d3VelocityDecay(0.4); }
         graphInstance.d3ReheatSimulation();
       }
     }
@@ -1203,34 +1194,15 @@
             for (let i = 0; i < tId.length; i++) hash += tId.charCodeAt(i);
             return (hash % 6.28);
           })
-          // Enlaces Duros vs Enlaces de Relación (Wikilinks claramente visibles con brillo y pulsos de luz)
+          // Enlaces Duros (Troncales Padre) vs Enlaces de Relación (Wikilinks claramente visibles)
           .linkColor(link => {
-            if (link.isStructural) {
-              const alpha = Math.min(1.0, 0.45 * linkBrightness);
-              return ;
-            } else {
-              // Wikilinks: glowing cyan/electric blue, vibrant and strongly reactive to slider
-              const alpha = Math.min(1.0, 0.72 * linkBrightness);
-              return ;
-            }
+            const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
+            return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
           })
-          .linkWidth(link => {
-            if (link.isStructural) {
-              return 1.4 * Math.max(0.6, Math.min(3.0, linkBrightness));
-            } else {
-              // Wikilinks are prominent, luminous lines
-              return 1.8 * Math.max(0.6, Math.min(3.0, linkBrightness));
-            }
-          })
-          .linkDirectionalParticles(link => link.isStructural ? 2 : 3)
-          .linkDirectionalParticleSpeed(link => link.isStructural ? 0.0025 : 0.0045)
-          .linkDirectionalParticleWidth(link => {
-            if (link.isStructural) {
-              return 2.4 * Math.max(0.7, Math.min(3.0, linkBrightness));
-            } else {
-              return 3.2 * Math.max(0.7, Math.min(3.0, linkBrightness));
-            }
-          })
+          .linkWidth(link => link.isStructural ? 1.2 : 0.85)
+          .linkDirectionalParticles(link => link.isStructural ? 2 : 1)
+          .linkDirectionalParticleSpeed(link => link.isStructural ? 0.002 : 0.005)
+          .linkDirectionalParticleWidth(link => link.isStructural ? 2.0 : 1.3)
           .linkDirectionalParticleColor(link => link.isStructural ? '#ffffff' : '#38bdf8')
           .onNodeClick(node => focusNode(node))
           .onNodeDrag((node, translate) => {
@@ -1506,12 +1478,8 @@
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         }
 
-        if (currentMode === 'galaxy') {
-          graphInstance.d3AlphaDecay(0);
-          graphInstance.d3VelocityDecay(0.16);
-        }
-
         // Auto-rotation
+        if (currentMode === "galaxy") { graphInstance.d3AlphaDecay(0); graphInstance.d3VelocityDecay(0.16); }
         graphInstance.controls().autoRotate = false;
         graphInstance.controls().autoRotateSpeed = 0.55;
 
@@ -1587,7 +1555,6 @@
 
     // 60 FPS Smooth Render Loop with Gentle Auto-Giro, Silky Inertia and Proximity Labels
     function startSmoothCameraLoop() {
-      let frameCount = 0;
       function tick() {
         requestAnimationFrame(tick);
         if (!graphInstance) return;
@@ -1603,15 +1570,7 @@
         currentRadius += (targetRadius - currentRadius) * 0.065;
 
         applyCameraPosition();
-                updateLabelLOD();
-
-        // Keep simulation running perpetually in galaxy mode
-        if (currentMode === 'galaxy' && graphInstance) {
-          frameCount = (frameCount || 0) + 1;
-          if (frameCount % 240 === 0) {
-            graphInstance.d3ReheatSimulation();
-          }
-        }
+        updateLabelLOD();
 
         // Actualizar posición de los anillos orbitales siguiendo a sus Soles
         if (window.__galaxyOrbitsMasterGroup) {
