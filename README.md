@@ -8,7 +8,7 @@
 > **Interactive 3D WebGL Galaxy Graph Visualizer for Open Knowledge Format (OKF v0.2) and Obsidian Markdown Vaults.**
 
 <p align="center">
-  <img src="assets/galaxy_preview_overview.png" alt="OKF 3D Galaxy Overview" width="100%" style="border-radius: 10px; border: 1px solid #334155;" />
+  <img src="assets/okf_galaxy_demo.gif" alt="OKF 3D Galaxy Live Demo" width="100%" style="border-radius: 10px; border: 1px solid #334155;" />
 </p>
 
 <p align="center">
