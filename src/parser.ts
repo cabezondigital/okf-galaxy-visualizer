@@ -34,6 +34,25 @@ export interface GraphData {
 }
 
 // Curated harmonious color palette for clusters
+
+const CANONICAL_CLUSTER_COLORS: Record<string, string> = {
+  contacts: '#fbbf24',
+  contact: '#fbbf24',
+  events: '#38bdf8',
+  event: '#38bdf8',
+  emails: '#c084fc',
+  email: '#c084fc',
+  photos: '#f43f5e',
+  photo: '#f43f5e',
+  learnings: '#10b981',
+  learning: '#10b981',
+  concepts: '#38bdf8',
+  projects: '#fbbf24',
+  architecture: '#c084fc',
+  research: '#f43f5e',
+  tools: '#10b981',
+};
+
 const CLUSTER_PALETTE = [
   '#38bdf8', // Sky / Cyan
   '#fbbf24', // Amber / Gold
@@ -82,7 +101,8 @@ export class OkfVaultParser {
 
     // Helper to process markdown files in a cluster
     const processCluster = (clusterName: string, folderPath: string, isRootFolder = false) => {
-      const clusterColor = CLUSTER_PALETTE[colorIdx % CLUSTER_PALETTE.length];
+      const lowerName = clusterName.toLowerCase();
+      const clusterColor = CANONICAL_CLUSTER_COLORS[lowerName] || CLUSTER_PALETTE[colorIdx % CLUSTER_PALETTE.length];
       colorIdx++;
 
       const rootId = `root_${this.slugify(clusterName)}`;

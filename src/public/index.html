@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>OKF 3D Galaxy Visualizer | Knowledge Graph</title>
+  <title>OKF Galaxy Visualizer - OKF 0.2 3D Spherical Cortex</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.73.3/dist/3d-force-graph.min.js"></script>
@@ -384,6 +384,44 @@
     .auto-rotate-pill:hover { border-color: rgba(56, 189, 248, 0.4); color: #fff; }
     .auto-rotate-pill.active { color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.08); }
 
+    /* Inspection Drawer */
+    #drawer {
+      width: 390px;
+      background: rgba(4, 7, 14, 0.92);
+      backdrop-filter: blur(30px);
+      border-left: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: -15px 0 40px rgba(0,0,0,0.85);
+    }
+    #drawer.open { transform: translateX(0); }
+
+    .drawer-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .close-btn:hover { color: #fff; }
+
+    .node-type-tag { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; padding: 3px 9px; border-radius: 4px; display: inline-block; letter-spacing: 0.5px; }
+    .node-title { font-size: 1.15rem; font-weight: 700; margin-top: 8px; color: #fff; line-height: 1.35; }
+    .node-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .tag { font-size: 0.68rem; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px; }
+    
+    .content-box { background: rgba(0,0,0,0.55); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.82rem; line-height: 1.6; color: #cbd5e1; white-space: pre-wrap; word-break: break-word; max-height: 360px; overflow-y: auto; }
+    .preview-img { width: 100%; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; }
+
+    .wikilinks-list { display: flex; flex-direction: column; gap: 6px; }
+    .wikilink-item { font-size: 0.8rem; color: var(--accent-cyan); background: rgba(56, 189, 248, 0.08); padding: 6px 10px; border-radius: 6px; text-decoration: none; border: 1px solid rgba(56, 189, 248, 0.15); cursor: pointer; transition: all 0.2s; }
+    .wikilink-item:hover { background: rgba(56, 189, 248, 0.2); border-color: var(--accent-cyan); }
+  
     /* Line Brightness Glass Capsule Slider */
     .line-brightness-hud {
       display: flex;
@@ -444,50 +482,13 @@
       user-select: none;
     }
 
-    /* Inspection Drawer */
-    #drawer {
-      width: 390px;
-      background: rgba(4, 7, 14, 0.92);
-      backdrop-filter: blur(30px);
-      border-left: 1px solid var(--border);
-      padding: 24px;
-      overflow-y: auto;
-      transform: translateX(100%);
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      z-index: 30;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: -15px 0 40px rgba(0,0,0,0.85);
-    }
-    #drawer.open { transform: translateX(0); }
-
-    .drawer-header { display: flex; justify-content: space-between; align-items: flex-start; }
-    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
-    .close-btn:hover { color: #fff; }
-
-    .node-type-tag { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; padding: 3px 9px; border-radius: 4px; display: inline-block; letter-spacing: 0.5px; }
-    .node-title { font-size: 1.15rem; font-weight: 700; margin-top: 8px; color: #fff; line-height: 1.35; }
-    .node-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-    .tag { font-size: 0.68rem; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px; }
-    
-    .content-box { background: rgba(0,0,0,0.55); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.82rem; line-height: 1.6; color: #cbd5e1; white-space: pre-wrap; word-break: break-word; max-height: 360px; overflow-y: auto; }
-    .preview-img { width: 100%; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; }
-
-    .wikilinks-list { display: flex; flex-direction: column; gap: 6px; }
-    .wikilink-item { font-size: 0.8rem; color: var(--accent-cyan); background: rgba(56, 189, 248, 0.08); padding: 6px 10px; border-radius: 6px; text-decoration: none; border: 1px solid rgba(56, 189, 248, 0.15); cursor: pointer; transition: all 0.2s; }
-    .wikilink-item:hover { background: rgba(56, 189, 248, 0.2); border-color: var(--accent-cyan); }
-  </style>
+</style>
 </head>
 <body>
 
   <header>
     <div class="brand">
-      <div class="brand-title">🌌 OKF Galaxy Visualizer</div>
+      <div class="brand-title">🧠 OKF Galaxy Visualizer</div>
       <div class="badge">OKF v0.2 Standard</div>
       <div class="mode-selector">
         <button id="mode-spherical-btn" class="mode-btn active" onclick="switchVisualizationMode('spherical')" title="3D Spherical Neural Cortex Mode">
@@ -508,7 +509,7 @@
       <div class="taxonomy-dropdown-wrapper">
         <button class="taxonomy-btn" id="taxonomy-btn" onclick="toggleTaxonomyMenu(event)">
           <span style="color: var(--accent-cyan)">◈</span>
-          <span>Filter Clusters</span>
+          <span>Categories</span>
           <span class="badge-count" id="tax-count">0</span>
           <span class="chevron">▾</span>
         </button>
@@ -534,29 +535,31 @@
     <!-- SEMITRANSPARENT MINI-SPHERE ROTATION & SUBTLE ZOOM HUD -->
     <div class="mini-sphere-hud">
       <!-- Mini Glass Orb with Chevrons -->
-      <div class="glass-orb" id="glass-orb" title="Drag orb to rotate 3D graph">
-        <div class="orb-arrow up" onclick="rotateSphere(0, -0.22)" title="Inclinar Arriba">▲</div>
-        <div class="orb-arrow down" onclick="rotateSphere(0, 0.22)" title="Inclinar Abajo">▼</div>
-        <div class="orb-arrow left" onclick="rotateSphere(0.22, 0)" title="Girar Izquierda">◀</div>
-        <div class="orb-arrow right" onclick="rotateSphere(-0.22, 0)" title="Girar Derecha">▶</div>
+      <div class="glass-orb" id="glass-orb" title="Drag orb to rotate 3D graph in any direction">
+        <div class="orb-arrow up" onclick="rotateSphere(0, -0.22)" title="Tilt Up">▲</div>
+        <div class="orb-arrow down" onclick="rotateSphere(0, 0.22)" title="Tilt Down">▼</div>
+        <div class="orb-arrow left" onclick="rotateSphere(0.22, 0)" title="Rotate Left">◀</div>
+        <div class="orb-arrow right" onclick="rotateSphere(-0.22, 0)" title="Rotate Right">▶</div>
         <div class="orb-center" onclick="resetCamera()" title="Click para centrar vista"></div>
       </div>
 
       <!-- Subtle Slim Zoom Bar -->
       <div class="subtle-zoom-bar">
-        <button class="zoom-btn" onclick="zoomCamera(0.85)" title="Acercar">+</button>
+        <button class="zoom-btn" onclick="zoomCamera(0.85)" title="Zoom In">+</button>
         <div class="zoom-track"><div class="zoom-pip"></div></div>
-        <button class="zoom-btn" onclick="zoomCamera(1.18)" title="Alejar">−</button>
+        <button class="zoom-btn" onclick="zoomCamera(1.18)" title="Zoom Out">−</button>
       </div>
 
+      <!-- Minimal Auto-Rotate Pill -->
+      
       <!-- Line Brightness Slider Capsule in Left Hub -->
-      <div class="line-brightness-hud" title="Adjust line & synapse brightness">
+      <div class="line-brightness-hud" title="Adjust line and synapse brightness">
         <span class="brightness-icon" title="Line Brightness">✨</span>
         <input 
           type="range" 
           id="link-brightness-slider" 
           class="brightness-slider" 
-          min="0.1" 
+          min="0.2" 
           max="2.5" 
           step="0.05" 
           value="1.0" 
@@ -565,7 +568,6 @@
         <span id="brightness-val-text" class="brightness-val">100%</span>
       </div>
 
-      <!-- Minimal Auto-Rotate Pill -->
       <div id="auto-rotate-pill" class="auto-rotate-pill active" onclick="toggleRotate()">
         <span>✦</span> Auto-Rotate
       </div>
@@ -575,7 +577,7 @@
     <aside id="drawer">
       <div class="drawer-header">
         <div>
-          <span id="drawer-group" class="node-type-tag">TIPO</span>
+          <span id="drawer-group" class="node-type-tag">CATEGORY</span>
           <h2 id="drawer-title" class="node-title">Node Title</h2>
           <div id="drawer-tags" class="node-tags"></div>
         </div>
@@ -600,6 +602,7 @@
     let graphData = { nodes: [], edges: [] };
     let graphInstance = null;
     let autoRotate = true;
+
     let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '1.0');
 
     function onLinkBrightnessChange(val) {
@@ -625,17 +628,23 @@
         });
       }
     }
-    let currentMode = window.location.hash.includes('spherical') ? 'spherical' : 'galaxy'; // 'spherical' | 'galaxy'
+
+    let currentMode = 'spherical'; // 'spherical' | 'galaxy'
     let currentSphereRadius = 240;
     const SPHERE_RADIUS = 270;
 
     // Centros de los 5 Sistemas Solares en el espacio 3D
     const GALAXY_CLUSTERS = {
-      contact:  { x: 0,    y: 140,  z: 0 },    // Sistema Sol Dorado (Contactos VIP)
-      event:    { x: 140,  y: -25,  z: 75 },   // Sistema Sol Cyan (Eventos y Agenda)
-      email:    { x: -140, y: -25,  z: 75 },   // Sistema Sol Violeta (Correos Indexados)
-      photo:    { x: 0,    y: -40,  z: -140 }, // Sistema Sol Rosa (Looks y Estilismo)
-      learning: { x: 0,    y: -130, z: 35 }    // Sistema Sol Esmeralda (Aprendizajes OKF)
+      contacts: { x: 0, y: 140, z: 0 },
+      events: { x: 140, y: -25, z: 75 },
+      emails: { x: -140, y: -25, z: 75 },
+      photos: { x: 0, y: -40, z: -140 },
+      learnings: { x: 0, y: -130, z: 35 },
+      contact: { x: 0, y: 140, z: 0 },
+      event: { x: 140, y: -25, z: 75 },
+      email: { x: -140, y: -25, z: 75 },
+      photo: { x: 0, y: -40, z: -140 },
+      learning: { x: 0, y: -130, z: 35 }
     };
 
     const SOLAR_ORBIT_RADII = [26, 38, 50, 62, 74, 86];
@@ -643,15 +652,12 @@
     function setupGalaxyParameters(nodes) {
       if (!nodes || !nodes.length) return;
       const roots = nodes.filter(n => n.isRoot);
-      const rootCount = Math.max(roots.length, 1);
 
       roots.forEach((rn, idx) => {
-        const angle = (idx / rootCount) * Math.PI * 2;
-        const radius = 180;
         const anchor = GALAXY_CLUSTERS[rn.group] || {
-          x: Math.cos(angle) * radius,
-          y: (idx % 2 === 0 ? 35 : -35),
-          z: Math.sin(angle) * radius
+          x: Math.cos(idx * 1.25) * 120,
+          y: Math.sin(idx * 1.25) * 60,
+          z: Math.sin(idx * 2.1) * 120
         };
         rn.starTargetX = anchor.x;
         rn.starTargetY = anchor.y;
@@ -689,7 +695,7 @@
             rx: angleCfg.rx,
             rz: angleCfg.rz,
             currentAngle: baseAngle,
-            orbitSpeed: 0.008 / Math.sqrt(r / 26) // Auto-Rotate continua Kepleriana
+            orbitSpeed: 0.008 / Math.sqrt(r / 26) // Rotación continua Kepleriana
           };
         });
       });
@@ -717,7 +723,7 @@
       });
 
       if (mode === 'galaxy') {
-        showToast('🌌 3D Galaxy Mode: Spherical stellar clusters & cosmic splines');
+        showToast('🌌 3D Galaxy Mode: Orbital stellar systems and cosmic splines');
         setupGalaxyParameters(nodes);
 
         const rootsMap = new Map();
@@ -760,7 +766,7 @@
             .strength(l => l.isStructural ? 0.05 : 0.001);
         }
       } else {
-        showToast('🌐 3D Spherical Cortex Mode: Cortical surface nodes with synapse arcs');
+        showToast('🌐 3D Spherical Cortex Mode: Neural cortical surface dynamics');
 
         // Restauración limpia e inmediata sobre la corteza esférica de Fibonacci
         const roots = nodes.filter(n => n.isRoot);
@@ -831,56 +837,56 @@
     
     function createRootLabelSprite(text, colorHex) {
       const canvas = document.createElement('canvas');
-      canvas.width = 220;
-      canvas.height = 42;
+      canvas.width = 280;
+      canvas.height = 64;
       const ctx = canvas.getContext('2d');
 
-      ctx.fillStyle = 'rgba(6, 10, 20, 0.82)';
+      ctx.fillStyle = 'rgba(6, 10, 20, 0.78)';
       ctx.strokeStyle = colorHex;
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.roundRect(4, 4, 212, 34, 7);
+      ctx.roundRect(6, 6, 268, 52, 10);
       ctx.fill();
       ctx.stroke();
 
-      ctx.font = 'Bold 13px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.font = 'Bold 18px -apple-system, BlinkMacSystemFont, sans-serif';
       ctx.fillStyle = '#f8fafc';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.shadowColor = colorHex;
-      ctx.shadowBlur = 5;
-      ctx.fillText(text, 110, 21);
+      ctx.shadowBlur = 6;
+      ctx.fillText(text, 140, 32);
 
       const texture = new THREE.CanvasTexture(canvas);
       const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.92 });
       const sprite = new THREE.Sprite(spriteMaterial);
-      sprite.scale.set(11.5, 2.2, 1);
+      sprite.scale.set(48, 11, 1);
       return sprite;
     }
 
     function createLabelSprite(text, colorHex) {
       const canvas = document.createElement('canvas');
-      canvas.width = 200;
-      canvas.height = 38;
+      canvas.width = 300;
+      canvas.height = 70;
       const ctx = canvas.getContext('2d');
 
-      // Micro glass pill badge
-      ctx.fillStyle = 'rgba(7, 12, 22, 0.86)';
-      ctx.strokeStyle = colorHex || 'rgba(56, 189, 248, 0.55)';
-      ctx.lineWidth = 1.2;
+      // Glass pill badge
+      ctx.fillStyle = 'rgba(6, 12, 24, 0.88)';
+      ctx.strokeStyle = colorHex || 'rgba(56, 189, 248, 0.6)';
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(3, 3, 194, 32, 6);
+      ctx.roundRect(8, 8, 284, 54, 12);
       ctx.fill();
       ctx.stroke();
 
-      ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.font = 'Bold 18px -apple-system, sans-serif';
       ctx.fillStyle = '#f8fafc';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.shadowColor = '#000000';
-      ctx.shadowBlur = 4;
-      const display = text.length > 20 ? text.substring(0, 18) + '…' : text;
-      ctx.fillText(display, 100, 19);
+      ctx.shadowBlur = 6;
+      const display = text.length > 25 ? text.substring(0, 23) + '…' : text;
+      ctx.fillText(display, 150, 35);
 
       const texture = new THREE.CanvasTexture(canvas);
       const spriteMaterial = new THREE.SpriteMaterial({
@@ -890,7 +896,7 @@
         depthWrite: false
       });
       const sprite = new THREE.Sprite(spriteMaterial);
-      sprite.scale.set(6.8, 1.35, 1);
+      sprite.scale.set(48, 11.2, 1);
       sprite.visible = false;
       return sprite;
     }
@@ -931,11 +937,11 @@
       }, duration);
     }
 
-    async function oldTriggerForcedLearning() {
+    async function triggerForcedLearning() {
       const btn = document.getElementById("learn-btn");
       const orig = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = "<span>⏳</span> <span>Consolidando...</span>";
+      btn.innerHTML = "<span>⏳</span> <span>Re-indexing...</span>";
       showToast("🧠 Re-indexing vault and synthesizing graph...");
 
       try {
@@ -1072,7 +1078,7 @@
     async function initGraph() {
       try {
         console.log('Fetching graph data...');
-        const res = await fetch('/api/graph');
+        const res = await fetch('/api/okf-graph');
         const data = await res.json();
         graphData = data;
         console.log('Graph data received:', data.stats);
@@ -1083,11 +1089,24 @@
         renderTaxonomyMenu(data);
 
         const colorMap = {
-          contact: '#fbbf24',  // Radiant Gold
-          event: '#38bdf8',    // Electric Cyan
-          email: '#c084fc',    // Neural Violet
-          photo: '#f43f5e',    // Neon Pink
-          learning: '#22c55e'  // Glowing Emerald
+          contact: '#fbbf24',
+          contacts: '#fbbf24',
+          event: '#38bdf8',
+          events: '#38bdf8',
+          email: '#c084fc',
+          emails: '#c084fc',
+          photo: '#f43f5e',
+          photos: '#f43f5e',
+          learning: '#10b981',
+          learnings: '#10b981',
+          concept: '#38bdf8',
+          concepts: '#38bdf8',
+          project: '#fbbf24',
+          projects: '#fbbf24',
+          architecture: '#c084fc',
+          research: '#f43f5e',
+          tool: '#10b981',
+          tools: '#10b981'
         };
 
         // Calcular grado / peso y potencia para cada nodo
@@ -1112,7 +1131,6 @@
           .backgroundColor('#000000')
           .nodeId('id')
           .nodeColor(node => colorMap[node.group] || node.color)
-          .nodeThreeObjectExtend(false)
           .nodeThreeObject(node => {
             const group = new THREE.Group();
             const nodeColor = colorMap[node.group] || node.color || '#38bdf8';
@@ -1122,8 +1140,8 @@
             // PESO / POTENCIA: Nodes con más sinapsis y peso son más grandes, intensos y poderosos
             const powerLevel = isRoot ? 12 : Math.min(10, degree + Math.round((node.size || 20) / 10));
 
-            // 1. Núcleo Estelar y Planetario (Delicado, nítido y astronómico)
-            const baseSize = isRoot ? 3.6 : Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
+            // 1. Núcleo Estelar (Superficie joya radiante según peso)
+            const baseSize = isRoot ? 7.2 : Math.max(3.2, 2.6 + Math.log2(powerLevel + 1) * 1.15);
             const sphereGeo = new THREE.SphereGeometry(baseSize, 32, 24);
             const sphereMat = new THREE.MeshBasicMaterial({ 
               color: isRoot ? 0xffffff : nodeColor 
@@ -1131,28 +1149,28 @@
             const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
             group.add(coreMesh);
 
-            // 2. Corona de Resplandor Suave (Aura sutil sin saturar)
+            // 2. Corona de Resplandor Volumétrico Proporcional a la Potencia
             const glowTex = getGlowTexture(nodeColor);
             const glowMat = new THREE.SpriteMaterial({
               map: glowTex,
               transparent: true,
               blending: THREE.AdditiveBlending,
-              opacity: isRoot ? 0.75 : (0.20 + Math.min(powerLevel, 5) * 0.02)
+              opacity: isRoot ? 0.95 : Math.min(0.88, 0.58 + powerLevel * 0.035)
             });
             const glowSprite = new THREE.Sprite(glowMat);
-            const glowScale = baseSize * (isRoot ? 2.4 : 1.5);
+            const glowScale = baseSize * (isRoot ? 4.5 : (2.8 + Math.min(powerLevel, 8) * 0.22));
             glowSprite.scale.set(glowScale, glowScale, 1);
             group.add(glowSprite);
 
             // 3. Labels: Raíces siempre visibles, subnodos aparecen dinámicamente al acercarse
             if (isRoot) {
               const rootSprite = createRootLabelSprite(node.label, nodeColor);
-              rootSprite.position.set(0, baseSize + 2.4, 0);
+              rootSprite.position.set(0, baseSize + 9, 0);
               node.__labelSprite = rootSprite;
               group.add(rootSprite);
             } else {
               const labelSprite = createLabelSprite(node.label, nodeColor);
-              labelSprite.position.set(0, baseSize + 1.2, 0);
+              labelSprite.position.set(0, baseSize + 6, 0);
               node.__labelSprite = labelSprite;
               group.add(labelSprite);
             }
@@ -1175,18 +1193,13 @@
             for (let i = 0; i < tId.length; i++) hash += tId.charCodeAt(i);
             return (hash % 6.28);
           })
-          // Enlaces Limpios Antialiased: Líneas sutiles sin saturación
-          .linkColor(link => {
-            if (link.isStructural) {
-              const alpha = Math.min(1.0, 0.22 * linkBrightness);
-              return `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
-            } else {
-              const alpha = Math.min(1.0, 0.32 * linkBrightness);
-              return `rgba(56, 189, 248, ${alpha.toFixed(3)})`;
-            }
-          })
-          .linkWidth(0)
-          .linkDirectionalParticles(0)
+          // Enlaces Duros (Troncales Padre) vs Enlaces de Relación (Wikilinks claramente visibles)
+          .linkColor(link => link.isStructural ? 'rgba(255, 255, 255, 0.45)' : 'rgba(56, 189, 248, 0.32)')
+          .linkWidth(link => link.isStructural ? 1.8 : 1.1)
+          .linkDirectionalParticles(link => link.isStructural ? 2 : 1)
+          .linkDirectionalParticleSpeed(link => link.isStructural ? 0.002 : 0.005)
+          .linkDirectionalParticleWidth(link => link.isStructural ? 3.0 : 1.8)
+          .linkDirectionalParticleColor(link => link.isStructural ? '#ffffff' : '#38bdf8')
           .onNodeClick(node => focusNode(node))
           .onNodeDrag((node, translate) => {
             if (!node) return;
@@ -1264,7 +1277,7 @@
               if (n.isRoot) {
                 // ⭐ SOL / ESTRELLA CENTRAL
                 if (!n.__isDraggingRoot) {
-                  const center = { x: n.starTargetX || 0, y: n.starTargetY || 0, z: n.starTargetZ || 0 };
+                  const center = GALAXY_CLUSTERS[n.group] || { x: 0, y: 0, z: 0 };
                   n.vx = (n.vx || 0) + (center.x - n.x) * 0.06;
                   n.vy = (n.vy || 0) + (center.y - n.y) * 0.06;
                   n.vz = (n.vz || 0) + (center.z - n.z) * 0.06;
@@ -1403,22 +1416,22 @@
         const starsMat = new THREE.PointsMaterial({ color: 0x475569, size: 1.2, transparent: true, opacity: 0.35 });
         scene.add(new THREE.Points(starsGeo, starsMat));
 
-        // Anillos orbitales de alambre 3D (Maqueta Sistema Solar por Familia)
+        // Anillos orbitales de alambre 3D (Armillary Wireframe Spheres per Solar System)
         const galaxyOrbitsMasterGroup = new THREE.Group();
         window.__galaxyOrbitsMasterGroup = galaxyOrbitsMasterGroup;
         const clusterOrbitGroups = {};
         window.__clusterOrbitGroups = clusterOrbitGroups;
 
-        const groupHexColors = {
-          contact: 0xfbbf24,
-          event: 0x38bdf8,
-          email: 0xc084fc,
-          photo: 0xf43f5e,
-          learning: 0x22c55e
-        };
+        const roots = data.nodes.filter(n => n.isRoot);
+        const rootCount = Math.max(roots.length, 1);
 
-        Object.entries(groupHexColors).forEach(([grp, hexColor]) => {
+        roots.forEach(rn => {
           const grpHolder = new THREE.Group();
+          let hexColor = 0x38bdf8;
+          if (rn.color) {
+            try { hexColor = parseInt(rn.color.replace('#', '0x'), 16); } catch(e){}
+          }
+
           SOLAR_ORBIT_RADII.forEach((r, idx) => {
             const pts = [];
             const segments = 64;
@@ -1430,7 +1443,7 @@
             const ringMat = new THREE.LineBasicMaterial({
               color: hexColor,
               transparent: true,
-              opacity: 0.20,
+              opacity: 0.22,
               blending: THREE.AdditiveBlending
             });
             const ringLine = new THREE.LineLoop(ringGeo, ringMat);
@@ -1447,50 +1460,55 @@
             ringLine.rotation.z = cfg.rz;
             grpHolder.add(ringLine);
           });
-          clusterOrbitGroups[grp] = grpHolder;
+
+          clusterOrbitGroups[rn.group] = grpHolder;
+          clusterOrbitGroups[rn.id] = grpHolder;
           galaxyOrbitsMasterGroup.add(grpHolder);
         });
 
         galaxyOrbitsMasterGroup.visible = (currentMode === 'galaxy');
         scene.add(galaxyOrbitsMasterGroup);
 
-        // Set high-DPI pixel ratio for razor-sharp antialiased rendering on Mac / Retina displays
         const renderer = graphInstance.renderer();
         if (renderer) {
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         }
 
-        // Controls configuration: smooth inertia damping, fluid axis rotation in all directions
-        const controls = graphInstance.controls();
-        if (controls) {
-          controls.enableDamping = true;
-          controls.dampingFactor = 0.08;
-          controls.rotateSpeed = 0.85;
-          controls.zoomSpeed = 1.1;
-          controls.panSpeed = 0.8;
-          controls.minDistance = 60;
-          controls.maxDistance = 2500;
-          controls.autoRotate = autoRotate;
-          controls.autoRotateSpeed = 0.65;
-        }
+        // Auto-rotation
+        graphInstance.controls().autoRotate = false;
+        graphInstance.controls().autoRotateSpeed = 0.55;
 
         // Initial camera framing
-        graphInstance.cameraPosition({ x: 0, y: 30, z: 620 }, { x: 0, y: 0, z: 0 }, 0);
+        graphInstance.cameraPosition({ z: 620 });
 
         // Setup Drag Interaction on the Glass Mini-Sphere Orb
         setupGlassOrbDrag();
 
-        // Restore saved line brightness
-        const savedB = localStorage.getItem('okf_link_brightness');
-        if (savedB) {
-          const slider = document.getElementById('link-brightness-slider');
-          if (slider) slider.value = savedB;
-          const textEl = document.getElementById('brightness-val-text');
-          if (textEl) textEl.innerText = Math.round(parseFloat(savedB) * 100) + '%';
-        }
-
       } catch (err) {
         console.error('Failed to init 3D graph:', err);
+      }
+    }
+
+    // Smooth Cinematic Camera Rig with Physical Inertia (Damping / Lerp)
+    let targetRadius = 660;
+    let currentRadius = 660;
+    let targetTheta = 0;
+    let currentTheta = 0;
+    let targetPhi = Math.PI * 0.5;
+    let currentPhi = Math.PI * 0.5;
+
+    function applyCameraPosition() {
+      if (!graphInstance) return;
+      const cam = graphInstance.camera();
+      cam.position.x = currentRadius * Math.sin(currentPhi) * Math.sin(currentTheta);
+      cam.position.y = currentRadius * Math.cos(currentPhi);
+      cam.position.z = currentRadius * Math.sin(currentPhi) * Math.cos(currentTheta);
+      cam.lookAt(0, 0, 0);
+
+      const controls = graphInstance.controls();
+      if (controls) {
+        controls.target.set(0, 0, 0);
+        controls.update();
       }
     }
 
@@ -1518,11 +1536,11 @@
         const dz = (n.z || 0) - camPos.z;
         const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        // Aparecen solo cuando la cámara está cerca del cúmulo inspeccionado (dist < 180)
-        if (dist < 180) {
-          const alpha = Math.max(0, Math.min(0.92, (180 - dist) / 75));
+        // Cuando la cámara se acerca a menos de 420 unidades, aparece su nombre
+        if (dist < 420) {
+          const alpha = Math.max(0, Math.min(0.95, (420 - dist) / 180));
           sprite.material.opacity = alpha;
-          sprite.visible = alpha > 0.05;
+          sprite.visible = alpha > 0.02;
         } else {
           sprite.visible = false;
           sprite.material.opacity = 0;
@@ -1530,18 +1548,23 @@
       }
     }
 
-    // 60 FPS Render Loop: native OrbitControls update, gentle auto-giro, and proximity LOD
+    // 60 FPS Smooth Render Loop with Gentle Auto-Giro, Silky Inertia and Proximity Labels
     function startSmoothCameraLoop() {
       function tick() {
         requestAnimationFrame(tick);
         if (!graphInstance) return;
 
-        const controls = graphInstance.controls();
-        if (controls) {
-          controls.autoRotate = autoRotate;
-          controls.update();
+        // Subtle, elegant Auto-Giro rotation (0.0012 rad/frame)
+        if (autoRotate) {
+          targetTheta += 0.0012;
         }
 
+        // Smooth physical interpolation (Lerp factor 0.065 for luxurious ease-in/ease-out)
+        currentTheta += (targetTheta - currentTheta) * 0.065;
+        currentPhi += (targetPhi - currentPhi) * 0.065;
+        currentRadius += (targetRadius - currentRadius) * 0.065;
+
+        applyCameraPosition();
         updateLabelLOD();
 
         // Actualizar posición de los anillos orbitales siguiendo a sus Soles
@@ -1550,9 +1573,11 @@
           if (currentMode === 'galaxy') {
             const nodes = (graphData && graphData.nodes) || [];
             nodes.filter(n => n.isRoot).forEach(rn => {
-              const holder = window.__clusterOrbitGroups && window.__clusterOrbitGroups[rn.group];
+              const holder = window.__clusterOrbitGroups && (window.__clusterOrbitGroups[rn.group] || window.__clusterOrbitGroups[rn.id]);
               if (holder) {
                 holder.position.set(rn.x || 0, rn.y || 0, rn.z || 0);
+                holder.rotation.y += 0.0018;
+                holder.rotation.x += 0.0008;
               }
             });
           }
@@ -1562,10 +1587,17 @@
     }
     startSmoothCameraLoop();
 
+    
+    // Native Mousewheel and Trackpad Scroll Gestures Support
+    window.addEventListener('wheel', (e) => {
+      // Smooth exponential zoom factor based on scroll direction
+      const factor = e.deltaY > 0 ? 1.08 : 0.92;
+      targetRadius = Math.max(160, Math.min(1800, targetRadius * factor));
+    }, { passive: true });
+
     // Mini-Sphere Drag Handler: rotates sphere around central origin with smooth momentum
     function setupGlassOrbDrag() {
       const orb = document.getElementById('glass-orb');
-      if (!orb) return;
       let isDragging = false;
       let prevX = 0;
       let prevY = 0;
@@ -1583,62 +1615,32 @@
         const dy = e.clientY - prevY;
         prevX = e.clientX;
         prevY = e.clientY;
-        rotateSphere(-dx * 0.008, -dy * 0.008);
+        rotateSphere(-dx * 0.009, -dy * 0.009);
       });
 
       window.addEventListener('mouseup', () => { isDragging = false; });
     }
 
     function rotateSphere(yawDelta, pitchDelta) {
-      if (!graphInstance) return;
-      const cam = graphInstance.camera();
-      const controls = graphInstance.controls();
-      if (!cam || !controls) return;
-      const target = controls.target || new THREE.Vector3(0, 0, 0);
-      const offset = cam.position.clone().sub(target);
-
-      const spherical = new THREE.Spherical().setFromVector3(offset);
-      spherical.theta += yawDelta;
-      spherical.phi += pitchDelta;
-      spherical.phi = Math.max(0.08, Math.min(Math.PI - 0.08, spherical.phi));
-      spherical.makeSafe();
-
-      offset.setFromSpherical(spherical);
-      cam.position.copy(target).add(offset);
-      cam.lookAt(target);
-      controls.update();
+      targetTheta += yawDelta;
+      targetPhi += pitchDelta;
+      // Clamp elevation between poles
+      targetPhi = Math.max(0.15, Math.min(Math.PI - 0.15, targetPhi));
     }
 
     function zoomCamera(scaleFactor) {
-      if (!graphInstance) return;
-      const cam = graphInstance.camera();
-      const controls = graphInstance.controls();
-      if (!cam || !controls) return;
-      const target = controls.target || new THREE.Vector3(0, 0, 0);
-      const offset = cam.position.clone().sub(target);
-      offset.multiplyScalar(scaleFactor);
-      if (offset.length() < 70) offset.setLength(70);
-      if (offset.length() > 2200) offset.setLength(2200);
-      cam.position.copy(target).add(offset);
-      cam.lookAt(target);
-      controls.update();
+      targetRadius = Math.max(340, Math.min(1300, targetRadius * scaleFactor));
     }
 
     function toggleRotate() {
       autoRotate = !autoRotate;
       const pill = document.getElementById('auto-rotate-pill');
       if (pill) pill.classList.toggle('active', autoRotate);
-      const controls = graphInstance && graphInstance.controls();
-      if (controls) controls.autoRotate = autoRotate;
     }
 
     function resetCamera() {
-      if (!graphInstance) return;
-      graphInstance.cameraPosition(
-        { x: 0, y: 30, z: 620 },
-        { x: 0, y: 0, z: 0 },
-        1000
-      );
+      targetRadius = 660;
+      targetPhi = Math.PI * 0.5;
       closeDrawer();
     }
 
@@ -1728,7 +1730,7 @@
     async function startApp() {
       await initGraph();
       // Restaurar modo guardado en localStorage o hash de la URL
-      const savedMode = localStorage.getItem('okf_viz_mode') || 'galaxy';
+      const savedMode = localStorage.getItem('okf_viz_mode') || (window.location.hash === '#galaxy' ? 'galaxy' : 'spherical');
       if (savedMode === 'galaxy') {
         setTimeout(() => switchVisualizationMode('galaxy', true), 120);
       }
