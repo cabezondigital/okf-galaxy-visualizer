@@ -4,7 +4,16 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-brightgreen.svg)](https://nodejs.org/)
 [![OKF](https://img.shields.io/badge/Standard-OKF%20v0.2-blueviolet.svg)](https://github.com/OpenKnowledgeFormat/okf-spec)
 
+
 > **Interactive 3D WebGL Galaxy Graph Visualizer for Open Knowledge Format (OKF v0.2) and Obsidian Markdown Vaults.**
+
+<p align="center">
+  <img src="assets/galaxy_preview_overview.png" alt="OKF 3D Galaxy Overview" width="100%" style="border-radius: 10px; border: 1px solid #334155;" />
+</p>
+
+<p align="center">
+  <em>Render any Markdown vault as an interactive 3D universe with orbital rings, celestial clusters, and glowing cosmic splines.</em>
+</p>
 
 The **OKF 3D Galaxy Visualizer** transforms standard, text-based Markdown knowledge vaults into a real-time, interactive 3D universe. Concepts and notes become planetary systems and stars, while semantic links form glowing cosmic splines and neural pathways.
 
@@ -17,6 +26,14 @@ The **OKF 3D Galaxy Visualizer** transforms standard, text-based Markdown knowle
 
 ---
 
+
+## 📸 Visual Showcase
+
+| Galactic Core & Armillary Rings | Clustered Stellar Nebulae & Splines |
+| :---: | :---: |
+| <img src="assets/galaxy_preview_overview.png" width="100%" /> | <img src="assets/galaxy_preview_clusters.png" width="100%" /> |
+
+---
 ## ✨ Features
 
 - **🌌 3D Galaxy Orbital Mode (Default)**: Clustered stellar nebulae, celestial armillary rings, central galactic core, and curved 3D Bézier cosmic splines.
