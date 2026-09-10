@@ -559,10 +559,10 @@
           min="0.1" 
           max="2.5" 
           step="0.05" 
-          value="2.0" 
+          value="1.0" 
           oninput="onLinkBrightnessChange(this.value)"
         />
-        <span id="brightness-val-text" class="brightness-val">200%</span>
+        <span id="brightness-val-text" class="brightness-val">100%</span>
       </div>
 
       <!-- Minimal Auto-Rotate Pill -->
@@ -600,7 +600,7 @@
     let graphData = { nodes: [], edges: [] };
     let graphInstance = null;
     let autoRotate = true;
-    let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '2.0');
+    let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '1.0');
 
     function onLinkBrightnessChange(val) {
       linkBrightness = parseFloat(val);
@@ -1122,8 +1122,8 @@
             // PESO / POTENCIA: Nodes con más sinapsis y peso son más grandes, intensos y poderosos
             const powerLevel = isRoot ? 12 : Math.min(10, degree + Math.round((node.size || 20) / 10));
 
-            // 1. Núcleo Estelar y Planetario (Luminoso, nítido y astronómico)
-            const baseSize = isRoot ? 6.0 : Math.max(2.0, Math.min(4.2, 1.8 + Math.log2(powerLevel + 1) * 0.55));
+            // 1. Núcleo Estelar y Planetario (Delicado, nítido y astronómico)
+            const baseSize = isRoot ? 3.6 : Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
             const sphereGeo = new THREE.SphereGeometry(baseSize, 32, 24);
             const sphereMat = new THREE.MeshBasicMaterial({ 
               color: isRoot ? 0xffffff : nodeColor 
@@ -1131,16 +1131,16 @@
             const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
             group.add(coreMesh);
 
-            // 2. Corona de Resplandor Suave (Aura nítida y vibrante)
+            // 2. Corona de Resplandor Suave (Aura sutil sin saturar)
             const glowTex = getGlowTexture(nodeColor);
             const glowMat = new THREE.SpriteMaterial({
               map: glowTex,
               transparent: true,
               blending: THREE.AdditiveBlending,
-              opacity: isRoot ? 0.95 : Math.min(0.85, 0.45 + Math.min(powerLevel, 5) * 0.05)
+              opacity: isRoot ? 0.75 : (0.20 + Math.min(powerLevel, 5) * 0.02)
             });
             const glowSprite = new THREE.Sprite(glowMat);
-            const glowScale = baseSize * (isRoot ? 3.2 : 2.2);
+            const glowScale = baseSize * (isRoot ? 2.4 : 1.5);
             glowSprite.scale.set(glowScale, glowScale, 1);
             group.add(glowSprite);
 
@@ -1175,21 +1175,18 @@
             for (let i = 0; i < tId.length; i++) hash += tId.charCodeAt(i);
             return (hash % 6.28);
           })
-          // Luminous High-Visibility Links and Flowing Energy Photons
+          // Enlaces Limpios Antialiased: Líneas sutiles sin saturación
           .linkColor(link => {
-            const alpha = Math.min(1.0, 0.65 * linkBrightness);
             if (link.isStructural) {
-              return `rgba(255, 255, 255, ${(alpha * 0.7).toFixed(2)})`;
+              const alpha = Math.min(1.0, 0.22 * linkBrightness);
+              return `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+            } else {
+              const alpha = Math.min(1.0, 0.32 * linkBrightness);
+              return `rgba(56, 189, 248, ${alpha.toFixed(3)})`;
             }
-            const src = link.source;
-            const col = (src && src.color) ? src.color : '#38bdf8';
-            return col;
           })
-          .linkWidth(link => link.isStructural ? 1.2 : 2.0)
-          .linkDirectionalParticles(link => link.isStructural ? 0 : 3)
-          .linkDirectionalParticleWidth(2.6)
-          .linkDirectionalParticleSpeed(0.007)
-          .linkDirectionalParticleColor(link => (link.source && link.source.color) ? link.source.color : '#38bdf8')
+          .linkWidth(0)
+          .linkDirectionalParticles(0)
           .onNodeClick(node => focusNode(node))
           .onNodeDrag((node, translate) => {
             if (!node) return;
@@ -1433,7 +1430,7 @@
             const ringMat = new THREE.LineBasicMaterial({
               color: hexColor,
               transparent: true,
-              opacity: 0.55 * linkBrightness,
+              opacity: 0.20,
               blending: THREE.AdditiveBlending
             });
             const ringLine = new THREE.LineLoop(ringGeo, ringMat);
