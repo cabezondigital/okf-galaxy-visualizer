@@ -688,14 +688,15 @@
           const ringIdx = i % SOLAR_ORBIT_RADII.length;
           const r = SOLAR_ORBIT_RADII[ringIdx];
           const angleCfg = RING_ANGLES[ringIdx] || { rx: 0, rz: 0 };
-          const baseAngle = (i / Math.max(total, 1)) * Math.PI * 2 * (1 + (i % 2) * 0.6);
+          // Ángulo inicial escalonado para que nunca se alineen en línea recta
+          const baseAngle = (i / Math.max(total, 1)) * Math.PI * 2 + (ringIdx * 1.35) + (i * 0.4);
 
           child.solarOrbit = {
             radius: r,
             rx: angleCfg.rx,
             rz: angleCfg.rz,
             currentAngle: baseAngle,
-            orbitSpeed: 0.008 / Math.sqrt(r / 26) // Rotación continua Kepleriana
+            orbitSpeed: 0.012 / Math.sqrt(r / 26) // Rotación continua Kepleriana fluida y perceptible
           };
         });
       });
@@ -758,12 +759,10 @@
         });
 
         if (graphInstance && graphInstance.d3Force('charge')) {
-          graphInstance.d3Force('charge').strength(-45).distanceMax(180);
+          graphInstance.d3Force('charge').strength(0);
         }
         if (graphInstance && graphInstance.d3Force('link')) {
-          graphInstance.d3Force('link')
-            .distance(l => l.isStructural ? 45 : 180)
-            .strength(l => l.isStructural ? 0.05 : 0.001);
+          graphInstance.d3Force('link').strength(0);
         }
       } else {
         showToast('🌐 3D Spherical Cortex Mode: Neural cortical surface dynamics');
@@ -800,7 +799,7 @@
       }
 
       if (graphInstance) {
-        if (mode === "galaxy") { graphInstance.d3AlphaDecay(0); graphInstance.d3VelocityDecay(0.16); } else { graphInstance.d3AlphaDecay(0.02); graphInstance.d3VelocityDecay(0.4); }
+        if (mode === "galaxy") { graphInstance.d3AlphaDecay(0); graphInstance.d3AlphaTarget(0.12); graphInstance.d3VelocityDecay(0.16); } else { graphInstance.d3AlphaTarget(0); graphInstance.d3AlphaDecay(0.02); graphInstance.d3VelocityDecay(0.4); }
         graphInstance.d3ReheatSimulation();
       }
     }
@@ -1138,38 +1137,85 @@
             const isRoot = !!node.isRoot;
             const degree = nodeDegreeMap.get(node.id) || 1;
 
-            // PESO / POTENCIA: Nodos con más sinapsis y peso son más grandes y nítidos
-            const powerLevel = isRoot ? 12 : Math.min(10, degree + Math.round((node.size || 20) / 10));
-
-            // 1. Núcleo Estelar y Planetario (Delicado, nítido y astronómico)
-            const baseSize = isRoot ? 3.8 : Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
-            const sphereGeo = new THREE.SphereGeometry(baseSize, 32, 24);
-            const sphereMat = new THREE.MeshBasicMaterial({ 
-              color: nodeColor 
-            });
-            const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
-            group.add(coreMesh);
-
-            // 2. Corona de Resplandor Suave (Aura sutil sin saturar)
-            const glowTex = getGlowTexture(nodeColor);
-            const glowMat = new THREE.SpriteMaterial({
-              map: glowTex,
-              transparent: true,
-              blending: THREE.AdditiveBlending,
-              opacity: isRoot ? 0.82 : (0.22 + Math.min(powerLevel, 5) * 0.02)
-            });
-            const glowSprite = new THREE.Sprite(glowMat);
-            const glowScale = baseSize * (isRoot ? 2.5 : 1.5);
-            glowSprite.scale.set(glowScale, glowScale, 1);
-            group.add(glowSprite);
-
-            // 3. Labels: Raíces siempre visibles, subnodos aparecen dinámicamente al acercarse
             if (isRoot) {
+              // ==============================================================
+              // 🌟 SOL LUMINOSO Y RADIANTE (Efecto Incandescente y Translúcido)
+              // ==============================================================
+              // 1. Núcleo Blanco Incandescente (Fusión nuclear interior brillante)
+              const innerCoreGeo = new THREE.SphereGeometry(1.6, 24, 18);
+              const innerCoreMat = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.95
+              });
+              const innerCoreMesh = new THREE.Mesh(innerCoreGeo, innerCoreMat);
+              group.add(innerCoreMesh);
+
+              // 2. Manto de Plasma Translúcido con Color de Clúster (Atmósfera estelar aditiva)
+              const plasmaGeo = new THREE.SphereGeometry(3.2, 32, 24);
+              const plasmaMat = new THREE.MeshBasicMaterial({
+                color: nodeColor,
+                transparent: true,
+                opacity: 0.65,
+                blending: THREE.AdditiveBlending
+              });
+              const plasmaMesh = new THREE.Mesh(plasmaGeo, plasmaMat);
+              group.add(plasmaMesh);
+
+              // 3. Corona Radiante Focalizada (Halo cercano)
+              const glowTex = getGlowTexture(nodeColor);
+              const coronaMat = new THREE.SpriteMaterial({
+                map: glowTex,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                opacity: 0.88
+              });
+              const coronaSprite = new THREE.Sprite(coronaMat);
+              coronaSprite.scale.set(13, 13, 1);
+              group.add(coronaSprite);
+
+              // 4. Halo Exterior de Dispersión Lumínica (Suave resplandor cósmico)
+              const flareMat = new THREE.SpriteMaterial({
+                map: glowTex,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                opacity: 0.38
+              });
+              const flareSprite = new THREE.Sprite(flareMat);
+              flareSprite.scale.set(24, 24, 1);
+              node.__stellarFlare = flareSprite;
+              group.add(flareSprite);
+
+              // 5. Etiqueta del Sol
               const rootSprite = createRootLabelSprite(node.label, nodeColor);
-              rootSprite.position.set(0, baseSize + 2.4, 0);
+              rootSprite.position.set(0, 5.2, 0);
               node.__labelSprite = rootSprite;
               group.add(rootSprite);
+
             } else {
+              // ==============================================================
+              // 🪐 SUBNODOS PLANETARIOS (Delicados y nítidos)
+              // ==============================================================
+              const powerLevel = Math.min(10, degree + Math.round((node.size || 20) / 10));
+              const baseSize = Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
+
+              const sphereGeo = new THREE.SphereGeometry(baseSize, 24, 18);
+              const sphereMat = new THREE.MeshBasicMaterial({ color: nodeColor });
+              const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
+              group.add(coreMesh);
+
+              const glowTex = getGlowTexture(nodeColor);
+              const glowMat = new THREE.SpriteMaterial({
+                map: glowTex,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                opacity: 0.22 + Math.min(powerLevel, 5) * 0.02
+              });
+              const glowSprite = new THREE.Sprite(glowMat);
+              const glowScale = baseSize * 1.5;
+              glowSprite.scale.set(glowScale, glowScale, 1);
+              group.add(glowSprite);
+
               const labelSprite = createLabelSprite(node.label, nodeColor);
               labelSprite.position.set(0, baseSize + 1.2, 0);
               node.__labelSprite = labelSprite;
@@ -1279,63 +1325,57 @@
               const n = nodes[i];
 
               if (n.isRoot) {
-                // ⭐ SOL / ESTRELLA CENTRAL
+                // ⭐ SOL / ESTRELLA CENTRAL (Resplandor pulsante vivo)
+                if (n.__stellarFlare) {
+                  const pulse = 1.0 + Math.sin(Date.now() * 0.0022 + i * 1.4) * 0.09;
+                  n.__stellarFlare.scale.set(24 * pulse, 24 * pulse, 1);
+                }
                 if (!n.__isDraggingRoot) {
                   const center = GALAXY_CLUSTERS[n.group] || { x: 0, y: 0, z: 0 };
-                  n.vx = (n.vx || 0) + (center.x - n.x) * 0.06;
-                  n.vy = (n.vy || 0) + (center.y - n.y) * 0.06;
-                  n.vz = (n.vz || 0) + (center.z - n.z) * 0.06;
-                  n.vx *= 0.82; n.vy *= 0.82; n.vz *= 0.82;
+                  n.x += (center.x - n.x) * 0.12;
+                  n.y += (center.y - n.y) * 0.12;
+                  n.z += (center.z - n.z) * 0.12;
+                  n.vx = 0; n.vy = 0; n.vz = 0;
                 }
               } else {
-                // 🪐 PLANETA ORBITANDO SU SOL
+                // 🪐 PLANETA EN ÓRBITA KEPLERIANA PURA (Cero temblores, rotación perpetua fluida)
                 const star = allRootsMap.get(n.group);
                 if (!star) continue;
 
-                if (draggedRootsMap.has(n.group)) {
-                  // Arrastrar el Sol arrastra todo su sistema solar con sus órbitas y planetas
-                  n.vx = (n.vx || 0) + (star.x - n.x) * 0.06;
-                  n.vy = (n.vy || 0) + (star.y - n.y) * 0.06;
-                  n.vz = (n.vz || 0) + (star.z - n.z) * 0.06;
+                if (!n.solarOrbit) {
+                  // Generar órbita por defecto si no existía
+                  const r = SOLAR_ORBIT_RADII[(i % SOLAR_ORBIT_RADII.length)] || 40;
+                  n.solarOrbit = {
+                    radius: r,
+                    rx: 0.1,
+                    rz: 0.1,
+                    currentAngle: (i * 1.2),
+                    orbitSpeed: 0.008 / Math.sqrt(r / 26)
+                  };
                 }
 
-                if (n.solarOrbit) {
-                  // Avance orbital armónico sobre el anillo de alambre
-                  n.solarOrbit.currentAngle += n.solarOrbit.orbitSpeed;
-                  const ang = n.solarOrbit.currentAngle;
-                  const r = n.solarOrbit.radius;
+                // Avance orbital armónico continuo y constante
+                n.solarOrbit.currentAngle += (n.solarOrbit.orbitSpeed || 0.006);
+                const ang = n.solarOrbit.currentAngle;
+                const r = n.solarOrbit.radius;
 
-                  const lx0 = Math.cos(ang) * r;
-                  const lz0 = Math.sin(ang) * r;
-                  const rx = n.solarOrbit.rx || 0;
-                  const rz = n.solarOrbit.rz || 0;
-                  const y1 = -lz0 * Math.sin(rx);
-                  const z1 = lz0 * Math.cos(rx);
-                  const lx = lx0 * Math.cos(rz) - y1 * Math.sin(rz);
-                  const ly = lx0 * Math.sin(rz) + y1 * Math.cos(rz);
-                  const lz = z1;
+                const lx0 = Math.cos(ang) * r;
+                const lz0 = Math.sin(ang) * r;
+                const rx = n.solarOrbit.rx || 0;
+                const rz = n.solarOrbit.rz || 0;
+                const y1 = -lz0 * Math.sin(rx);
+                const z1 = lz0 * Math.cos(rx);
+                const lx = lx0 * Math.cos(rz) - y1 * Math.sin(rz);
+                const ly = lx0 * Math.sin(rz) + y1 * Math.cos(rz);
+                const lz = z1;
 
-                  const targetX = star.x + lx;
-                  const targetY = star.y + ly;
-                  const targetZ = star.z + lz;
-
-                  n.vx = (n.vx || 0) + (targetX - n.x) * 0.08;
-                  n.vy = (n.vy || 0) + (targetY - n.y) * 0.08;
-                  n.vz = (n.vz || 0) + (targetZ - n.z) * 0.08;
-                }
-
-                n.vx *= 0.82;
-                n.vy *= 0.82;
-                n.vz *= 0.82;
-              }
-
-              // Contención esférica global
-              const dGlobal = Math.sqrt((n.x || 0) ** 2 + (n.y || 0) ** 2 + (n.z || 0) ** 2) || 0.001;
-              if (dGlobal > currentSphereRadius) {
-                const push = (dGlobal - currentSphereRadius) * 0.15;
-                n.vx -= (n.x / dGlobal) * push;
-                n.vy -= (n.y / dGlobal) * push;
-                n.vz -= (n.z / dGlobal) * push;
+                // Posición matemática exacta sobre el anillo de su Sol (inmune a interferencias de fuerzas D3)
+                n.x = star.x + lx;
+                n.y = star.y + ly;
+                n.z = star.z + lz;
+                n.vx = 0;
+                n.vy = 0;
+                n.vz = 0;
               }
             }
           } else {
@@ -1523,7 +1563,7 @@
       const cam = graphInstance.camera();
       if (!cam) return;
       const camPos = cam.position;
-      const nodes = (graphData && graphData.nodes) || [];
+      const nodes = (graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || (graphData && graphData.nodes) || [];
 
       for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i];
@@ -1576,13 +1616,11 @@
         if (window.__galaxyOrbitsMasterGroup) {
           window.__galaxyOrbitsMasterGroup.visible = (currentMode === 'galaxy');
           if (currentMode === 'galaxy') {
-            const nodes = (graphData && graphData.nodes) || [];
+            const nodes = (graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || (graphData && graphData.nodes) || [];
             nodes.filter(n => n.isRoot).forEach(rn => {
               const holder = window.__clusterOrbitGroups && (window.__clusterOrbitGroups[rn.group] || window.__clusterOrbitGroups[rn.id]);
               if (holder) {
                 holder.position.set(rn.x || 0, rn.y || 0, rn.z || 0);
-                holder.rotation.y += 0.0018;
-                holder.rotation.x += 0.0008;
               }
             });
           }
