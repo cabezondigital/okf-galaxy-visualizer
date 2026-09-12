@@ -35,6 +35,12 @@
       justify-content: space-between;
       align-items: center;
       z-index: 20;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    }
+    body.hud-hidden header {
+      transform: translateY(-120%);
+      opacity: 0;
+      pointer-events: none;
     }
     .brand { display: flex; align-items: center; gap: 10px; }
     .brand-title { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; background: linear-gradient(135deg, #ffffff, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -269,8 +275,58 @@
       z-index: 15;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       background: transparent;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hud-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      transform-origin: left center;
+      overflow: hidden;
+      max-width: 1400px;
+      opacity: 1;
+    }
+    body.hud-hidden .hud-controls-group {
+      opacity: 0;
+      transform: translateX(-35px) scale(0.92);
+      pointer-events: none;
+      max-width: 0;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+    }
+    .hud-toggle-btn {
+      background: rgba(10, 15, 26, 0.55);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .hud-toggle-btn:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #ffffff;
+      background: rgba(56, 189, 248, 0.12);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+    }
+    body.hud-hidden .hud-toggle-btn {
+      background: rgba(15, 23, 42, 0.85);
+      border-color: rgba(56, 189, 248, 0.5);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
     }
 
     /* The glowing 3D glass mini-sphere */
@@ -579,60 +635,82 @@
     <div id="3d-graph"></div>
 
     <!-- SEMITRANSPARENT MINI-SPHERE ROTATION & SUBTLE ZOOM HUD -->
-    <div class="mini-sphere-hud">
-      <!-- Mini Glass Orb with Chevrons -->
-      <div class="glass-orb" id="glass-orb" title="Drag orb to rotate 3D graph in any direction">
-        <div class="orb-arrow up" onclick="rotateSphere(0, -0.22)" title="Tilt Up">▲</div>
-        <div class="orb-arrow down" onclick="rotateSphere(0, 0.22)" title="Tilt Down">▼</div>
-        <div class="orb-arrow left" onclick="rotateSphere(0.22, 0)" title="Rotate Left">◀</div>
-        <div class="orb-arrow right" onclick="rotateSphere(-0.22, 0)" title="Rotate Right">▶</div>
-        <div class="orb-center" onclick="resetCamera()" title="Click para centrar vista"></div>
+    <div class="mini-sphere-hud" id="mini-sphere-hud">
+      <div class="hud-controls-group" id="hud-controls-group">
+        <!-- Mini Glass Orb with Chevrons -->
+        <div class="glass-orb" id="glass-orb" title="Drag orb to rotate 3D graph in any direction">
+          <div class="orb-arrow up" onclick="rotateSphere(0, -0.22)" title="Tilt Up">▲</div>
+          <div class="orb-arrow down" onclick="rotateSphere(0, 0.22)" title="Tilt Down">▼</div>
+          <div class="orb-arrow left" onclick="rotateSphere(0.22, 0)" title="Rotate Left">◀</div>
+          <div class="orb-arrow right" onclick="rotateSphere(-0.22, 0)" title="Rotate Right">▶</div>
+          <div class="orb-center" onclick="resetCamera()" title="Click para centrar vista"></div>
+        </div>
+
+        <!-- Subtle Slim Zoom Bar -->
+        <div class="subtle-zoom-bar">
+          <button class="zoom-btn" onclick="zoomCamera(0.85)" title="Zoom In">+</button>
+          <div class="zoom-track"><div class="zoom-pip"></div></div>
+          <button class="zoom-btn" onclick="zoomCamera(1.18)" title="Zoom Out">−</button>
+        </div>
+
+        <!-- Line Brightness Slider Capsule in Left Hub -->
+        <div class="line-brightness-hud" title="Adjust line and synapse brightness">
+          <span class="brightness-icon" title="Line Brightness">✨</span>
+          <input 
+            type="range" 
+            id="link-brightness-slider" 
+            class="brightness-slider" 
+            min="0.2" 
+            max="2.5" 
+            step="0.05" 
+            value="1.0" 
+            oninput="onLinkBrightnessChange(this.value)"
+          />
+          <span id="brightness-val-text" class="brightness-val">100%</span>
+        </div>
+
+        <!-- Orbital Speed Slider Capsule in Left Hub -->
+        <div class="line-brightness-hud" title="Velocidad orbital y auto-giro (0x = Pausa)">
+          <span class="brightness-icon" title="Velocidad">⏱️</span>
+          <input 
+            type="range" 
+            id="orbital-speed-slider" 
+            class="brightness-slider" 
+            min="0" 
+            max="3.0" 
+            step="0.1" 
+            value="1.0" 
+            oninput="onOrbitalSpeedChange(this.value)"
+          />
+          <span id="speed-val-text" class="brightness-val">1.0x</span>
+        </div>
+
+        <!-- Node Size Slider Capsule in Left Hub -->
+        <div class="line-brightness-hud" title="Tamaño de nodos y planetas (Soles / Subnodos)">
+          <span class="brightness-icon" title="Tamaño Nodos">🪐</span>
+          <input 
+            type="range" 
+            id="node-size-slider" 
+            class="brightness-slider" 
+            min="0.3" 
+            max="2.5" 
+            step="0.05" 
+            value="1.0" 
+            oninput="onNodeSizeChange(this.value)"
+          />
+          <span id="nodesize-val-text" class="brightness-val">1.0x</span>
+        </div>
+
+        <div id="auto-rotate-pill" class="auto-rotate-pill active" onclick="toggleRotate()">
+          <span>✦</span> Auto-Rotate
+        </div>
       </div>
 
-      <!-- Subtle Slim Zoom Bar -->
-      <div class="subtle-zoom-bar">
-        <button class="zoom-btn" onclick="zoomCamera(0.85)" title="Zoom In">+</button>
-        <div class="zoom-track"><div class="zoom-pip"></div></div>
-        <button class="zoom-btn" onclick="zoomCamera(1.18)" title="Zoom Out">−</button>
-      </div>
-
-      <!-- Minimal Auto-Rotate Pill -->
-      
-      <!-- Line Brightness Slider Capsule in Left Hub -->
-      <div class="line-brightness-hud" title="Adjust line and synapse brightness">
-        <span class="brightness-icon" title="Line Brightness">✨</span>
-        <input 
-          type="range" 
-          id="link-brightness-slider" 
-          class="brightness-slider" 
-          min="0.2" 
-          max="2.5" 
-          step="0.05" 
-          value="1.0" 
-          oninput="onLinkBrightnessChange(this.value)"
-        />
-        <span id="brightness-val-text" class="brightness-val">100%</span>
-      </div>
-
-      <!-- Orbital Speed Slider Capsule in Left Hub -->
-      <div class="line-brightness-hud" title="Velocidad orbital y auto-giro (0x = Pausa)">
-        <span class="brightness-icon" title="Velocidad">⏱️</span>
-        <input 
-          type="range" 
-          id="orbital-speed-slider" 
-          class="brightness-slider" 
-          min="0" 
-          max="3.0" 
-          step="0.1" 
-          value="1.0" 
-          oninput="onOrbitalSpeedChange(this.value)"
-        />
-        <span id="speed-val-text" class="brightness-val">1.0x</span>
-      </div>
-
-      <div id="auto-rotate-pill" class="auto-rotate-pill active" onclick="toggleRotate()">
-        <span>✦</span> Auto-Rotate
-      </div>
+      <!-- Toggle HUD Button -->
+      <button id="hud-toggle-btn" class="hud-toggle-btn" onclick="toggleHud()" title="Ocultar interfaz y controles (Tecla H)">
+        <span class="hud-toggle-icon">👁️</span>
+        <span class="hud-toggle-label">Ocultar UI</span>
+      </button>
     </div>
 
     <!-- Inspection Drawer -->
@@ -703,6 +781,46 @@
         });
       }
     }
+
+    let nodeScaleMultiplier = parseFloat(localStorage.getItem('okf_node_scale') || '1.0');
+
+    function onNodeSizeChange(val) {
+      nodeScaleMultiplier = parseFloat(val);
+      const textEl = document.getElementById('nodesize-val-text');
+      if (textEl) {
+        textEl.innerText = nodeScaleMultiplier.toFixed(2) + 'x';
+      }
+      localStorage.setItem('okf_node_scale', val);
+
+      const nodes = window.__cachedAllNodes || ((graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || (graphData && graphData.nodes) || []);
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        if (n.__threeObj) {
+          n.__threeObj.scale.set(nodeScaleMultiplier, nodeScaleMultiplier, nodeScaleMultiplier);
+        }
+      }
+    }
+
+    function toggleHud() {
+      const isHidden = document.body.classList.toggle('hud-hidden');
+      localStorage.setItem('okf_hud_hidden', isHidden ? 'true' : 'false');
+      updateHudToggleState();
+    }
+
+    function updateHudToggleState() {
+      const isHidden = document.body.classList.contains('hud-hidden');
+      const label = document.querySelector('.hud-toggle-label');
+      const btn = document.getElementById('hud-toggle-btn');
+      if (label) label.textContent = isHidden ? 'Mostrar UI' : 'Ocultar UI';
+      if (btn) btn.title = isHidden ? 'Mostrar controles e interfaz (Tecla H)' : 'Ocultar controles e interfaz (Tecla H)';
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.key === 'h' || e.key === 'H') {
+        toggleHud();
+      }
+    });
 
     let currentMode = 'spherical'; // 'spherical' | 'galaxy'
     let currentSphereRadius = 240;
@@ -1348,6 +1466,8 @@
               group.add(labelSprite);
             }
 
+            group.scale.set(nodeScaleMultiplier, nodeScaleMultiplier, nodeScaleMultiplier);
+            node.__threeObj = group;
             return group;
           })
           // SPLINES CURVILÍNEOS 3D: Arcos espaciales continuos, suaves y majestuosos
@@ -2197,6 +2317,16 @@
       const brightText = document.getElementById('brightness-val-text');
       if (brightSlider) brightSlider.value = linkBrightness;
       if (brightText) brightText.innerText = Math.round(linkBrightness * 100) + '%';
+
+      const nodeSlider = document.getElementById('node-size-slider');
+      const nodeText = document.getElementById('nodesize-val-text');
+      if (nodeSlider) nodeSlider.value = nodeScaleMultiplier;
+      if (nodeText) nodeText.innerText = nodeScaleMultiplier.toFixed(2) + 'x';
+
+      if (localStorage.getItem('okf_hud_hidden') === 'true') {
+        document.body.classList.add('hud-hidden');
+      }
+      updateHudToggleState();
 
       await initGraph();
       // Restaurar modo guardado en localStorage o hash de la URL
