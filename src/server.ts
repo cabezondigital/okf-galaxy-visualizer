@@ -16,7 +16,13 @@ for (const arg of process.argv) {
 }
 
 if (!vaultPath) {
-  vaultPath = path.resolve(process.cwd(), 'sample_vault');
+  // If running locally alongside Luzia (AssistantAI), automatically mount its live knowledge base
+  const siblingLuziaVault = path.resolve(process.cwd(), '../AssistantAI/storage/knowledge_base');
+  if (fs.existsSync(siblingLuziaVault)) {
+    vaultPath = siblingLuziaVault;
+  } else {
+    vaultPath = path.resolve(process.cwd(), 'sample_vault');
+  }
 } else {
   vaultPath = path.resolve(vaultPath);
 }
