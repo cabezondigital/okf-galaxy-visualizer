@@ -670,8 +670,8 @@
         </div>
 
         <!-- Orbital Speed Slider Capsule in Left Hub -->
-        <div class="line-brightness-hud" title="Velocidad orbital y auto-giro (0x = Pausa)">
-          <span class="brightness-icon" title="Velocidad">⏱️</span>
+        <div class="line-brightness-hud" title="Orbital speed & auto-rotation (0x = Pause)">
+          <span class="brightness-icon" title="Orbital Speed">⏱️</span>
           <input 
             type="range" 
             id="orbital-speed-slider" 
@@ -686,8 +686,8 @@
         </div>
 
         <!-- Node Size Slider Capsule in Left Hub -->
-        <div class="line-brightness-hud" title="Tamaño de nodos y planetas (Soles / Subnodos)">
-          <span class="brightness-icon" title="Tamaño Nodos">🪐</span>
+        <div class="line-brightness-hud" title="Adjust node and planet scale (Suns / Subnodes)">
+          <span class="brightness-icon" title="Node Size">🪐</span>
           <input 
             type="range" 
             id="node-size-slider" 
@@ -707,9 +707,9 @@
       </div>
 
       <!-- Toggle HUD Button -->
-      <button id="hud-toggle-btn" class="hud-toggle-btn" onclick="toggleHud()" title="Ocultar interfaz y controles (Tecla H)">
+      <button id="hud-toggle-btn" class="hud-toggle-btn" onclick="toggleHud()" title="Hide interface & controls (Hotkey: H)">
         <span class="hud-toggle-icon">👁️</span>
-        <span class="hud-toggle-label">Ocultar UI</span>
+        <span class="hud-toggle-label">Hide UI</span>
       </button>
     </div>
 
@@ -811,8 +811,8 @@
       const isHidden = document.body.classList.contains('hud-hidden');
       const label = document.querySelector('.hud-toggle-label');
       const btn = document.getElementById('hud-toggle-btn');
-      if (label) label.textContent = isHidden ? 'Mostrar UI' : 'Ocultar UI';
-      if (btn) btn.title = isHidden ? 'Mostrar controles e interfaz (Tecla H)' : 'Ocultar controles e interfaz (Tecla H)';
+      if (label) label.textContent = isHidden ? 'Show UI' : 'Hide UI';
+      if (btn) btn.title = isHidden ? 'Show controls & UI (Hotkey: H)' : 'Hide controls & UI (Hotkey: H)';
     }
 
     window.addEventListener('keydown', (e) => {
