@@ -941,37 +941,42 @@
 
     function createLabelSprite(text, colorHex) {
       const canvas = document.createElement('canvas');
-      canvas.width = 200;
-      canvas.height = 38;
+      canvas.width = 512;
+      canvas.height = 100;
       const ctx = canvas.getContext('2d');
 
-      // Micro glass pill badge
-      ctx.fillStyle = 'rgba(7, 12, 22, 0.86)';
-      ctx.strokeStyle = colorHex || 'rgba(56, 189, 248, 0.55)';
-      ctx.lineWidth = 1.2;
+      // High-DPI Crisp Glass Pill Badge
+      ctx.fillStyle = 'rgba(6, 10, 20, 0.90)';
+      ctx.strokeStyle = colorHex || 'rgba(56, 189, 248, 0.65)';
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.roundRect(3, 3, 194, 32, 6);
+      ctx.roundRect(6, 6, 500, 88, 18);
       ctx.fill();
       ctx.stroke();
 
-      ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.shadowColor = '#000000';
-      ctx.shadowBlur = 4;
-      const display = text.length > 20 ? text.substring(0, 18) + '…' : text;
-      ctx.fillText(display, 100, 19);
+      ctx.shadowBlur = 8;
+      
+      const cleanText = text.replace(/^\[\[|\]\]$/g, '').trim();
+      const display = cleanText.length > 32 ? cleanText.substring(0, 30) + '…' : cleanText;
+      ctx.fillText(display, 256, 50);
 
       const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+
       const spriteMaterial = new THREE.SpriteMaterial({
         map: texture,
         transparent: true,
-        opacity: 0,
+        opacity: 0.85,
         depthWrite: false
       });
       const sprite = new THREE.Sprite(spriteMaterial);
-      sprite.scale.set(6.8, 1.35, 1);
+      sprite.scale.set(18, 3.5, 1);
       sprite.visible = false;
       return sprite;
     }
@@ -1205,7 +1210,13 @@
           .graphData({ nodes: data.nodes, links: formattedLinks })
           .backgroundColor('#000000')
           .nodeId('id')
-          .nodeColor(node => colorMap[node.group] || node.color)
+          .nodeColor(node => {
+            const baseColor = colorMap[node.group] || node.color || '#38bdf8';
+            if (!searchActive) return baseColor;
+            if (node.__searchMatch) return '#ffffff'; // Destello blanco incandescente para coincidencias
+            if (node.__searchConnected) return baseColor; // Conexiones en su color normal
+            return 'rgba(30, 41, 59, 0.18)'; // Atenuado en penumbra para nodos no relacionados
+          })
           .nodeThreeObject(node => {
             const group = new THREE.Group();
             const nodeColor = colorMap[node.group] || node.color || '#38bdf8';
@@ -1279,20 +1290,31 @@
               const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
               group.add(coreMesh);
 
+              // 🎯 HIT AREA GENEROSA INVISIBLE: Multiplica el área de click por 100 para que sea comodísimo clickar
+              const hitGeo = new THREE.SphereGeometry(Math.max(6.5, baseSize * 4.5), 12, 10);
+              const hitMat = new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0.0001,
+                depthWrite: false
+              });
+              const hitMesh = new THREE.Mesh(hitGeo, hitMat);
+              group.add(hitMesh);
+
               const glowTex = getGlowTexture(nodeColor);
               const glowMat = new THREE.SpriteMaterial({
                 map: glowTex,
                 transparent: true,
                 blending: THREE.AdditiveBlending,
-                opacity: 0.22 + Math.min(powerLevel, 5) * 0.02
+                opacity: 0.25 + Math.min(powerLevel, 5) * 0.02
               });
               const glowSprite = new THREE.Sprite(glowMat);
-              const glowScale = baseSize * 1.5;
+              const glowScale = baseSize * 1.6;
               glowSprite.scale.set(glowScale, glowScale, 1);
+              node.__glowSprite = glowSprite;
               group.add(glowSprite);
 
               const labelSprite = createLabelSprite(node.label, nodeColor);
-              labelSprite.position.set(0, baseSize + 1.2, 0);
+              labelSprite.position.set(0, baseSize + 2.8, 0);
               node.__labelSprite = labelSprite;
               group.add(labelSprite);
             }
@@ -1317,6 +1339,13 @@
           .linkResolution(16)
           // Enlaces Duros (Troncales Padre) vs Enlaces de Relación (Wikilinks claramente visibles)
           .linkColor(link => {
+            if (searchActive) {
+              const sId = (link.source && link.source.id) || link.source;
+              const tId = (link.target && link.target.id) || link.target;
+              const isRelevant = matchingNodeIds.has(sId) && matchingNodeIds.has(tId);
+              if (!isRelevant) return 'rgba(255, 255, 255, 0.02)';
+              return '#38bdf8';
+            }
             const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
             return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
           })
@@ -1326,6 +1355,23 @@
           .linkDirectionalParticleWidth(link => link.isStructural ? 2.0 : 1.3)
           .linkDirectionalParticleColor(link => link.isStructural ? '#ffffff' : '#38bdf8')
           .onNodeClick(node => focusNode(node))
+          .onNodeHover((node, prevNode) => {
+            const container = document.getElementById('3d-graph');
+            if (container) {
+              container.style.cursor = node ? 'pointer' : 'grab';
+            }
+
+            // Destacar nodo sobrevolado y mostrar su nombre inmediatamente
+            if (node && node.__labelSprite) {
+              node.__labelSprite.visible = true;
+              node.__labelSprite.material.opacity = 1.0;
+              node.__labelSprite.scale.set(22, 4.3, 1);
+              if (node.__glowSprite) node.__glowSprite.scale.set(5.5, 5.5, 1);
+            }
+            if (prevNode && prevNode !== node && prevNode.__labelSprite) {
+              prevNode.__labelSprite.scale.set(18, 3.5, 1);
+            }
+          })
           .onNodeDrag((node, translate) => {
             isNodeBeingDragged = true;
             if (!node) return;
@@ -1618,7 +1664,7 @@
       }
     }
 
-    // Smooth Cinematic Camera Rig with Physical Inertia (Damping / Lerp)
+    // Smooth Cinematic Camera Rig with Physical Inertia & Volumetric Fly-To Targets
     let targetRadius = 660;
     let currentRadius = 660;
     let targetTheta = 0;
@@ -1626,18 +1672,28 @@
     let targetPhi = Math.PI * 0.5;
     let currentPhi = Math.PI * 0.5;
 
+    const targetLookAt = new THREE.Vector3(0, 0, 0);
+    const currentLookAt = new THREE.Vector3(0, 0, 0);
+    let focusedNodeId = null;
+
     function applyCameraPosition() {
       if (!graphInstance) return;
       const cam = graphInstance.camera();
-      cam.position.x = currentRadius * Math.sin(currentPhi) * Math.sin(currentTheta);
-      cam.position.y = currentRadius * Math.cos(currentPhi);
-      cam.position.z = currentRadius * Math.sin(currentPhi) * Math.cos(currentTheta);
-      cam.lookAt(0, 0, 0);
+      if (!cam) return;
+
+      // Suave vuelo cinematográfico hacia el objetivo (nodo enfocado o centro)
+      currentLookAt.lerp(targetLookAt, 0.075);
+
+      const cx = currentLookAt.x + currentRadius * Math.sin(currentPhi) * Math.sin(currentTheta);
+      const cy = currentLookAt.y + currentRadius * Math.cos(currentPhi);
+      const cz = currentLookAt.z + currentRadius * Math.sin(currentPhi) * Math.cos(currentTheta);
+
+      cam.position.set(cx, cy, cz);
+      cam.lookAt(currentLookAt);
 
       const controls = graphInstance.controls();
       if (controls) {
-        controls.target.set(0, 0, 0);
-        controls.update();
+        controls.target.copy(currentLookAt);
       }
     }
 
@@ -1665,11 +1721,23 @@
         const dz = (n.z || 0) - camPos.z;
         const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        // Cuando la cámara se acerca a menos de 420 unidades, aparece su nombre
-        if (dist < 420) {
-          const alpha = Math.max(0, Math.min(0.95, (420 - dist) / 180));
+        // Si hay búsqueda activa o es el nodo enfocado, mantener visible
+        if (n.__searchMatch || n.id === focusedNodeId) {
+          sprite.visible = true;
+          sprite.material.opacity = 1.0;
+          continue;
+        }
+        if (searchActive && !n.__searchMatch) {
+          sprite.visible = false;
+          sprite.material.opacity = 0;
+          continue;
+        }
+
+        // Rango de visibilidad ampliado: legible desde 580 unidades de distancia
+        if (dist < 580) {
+          const alpha = Math.max(0, Math.min(0.95, (580 - dist) / 220));
           sprite.material.opacity = alpha;
-          sprite.visible = alpha > 0.02;
+          sprite.visible = alpha > 0.04;
         } else {
           sprite.visible = false;
           sprite.material.opacity = 0;
@@ -1842,20 +1910,33 @@
     }
 
     function resetCamera() {
+      focusedNodeId = null;
+      targetLookAt.set(0, 0, 0);
       targetRadius = 660;
       targetPhi = Math.PI * 0.5;
       closeDrawer();
+      clearSearchSpotlight();
     }
 
     function focusNode(node) {
-      const distance = 160;
-      const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
+      if (!node) return;
+      focusedNodeId = node.id;
+      
+      // 🚀 VUELO CINEMATOGRÁFICO DE LA CÁMARA AL NODO
+      targetLookAt.set(node.x || 0, node.y || 0, node.z || 0);
+      targetRadius = 140; // Acercamiento nítido para ver el nodo y sus vecinos
+      
+      // Auto-rotar pausa temporalmente para contemplar el nodo enfocado
+      autoRotate = false;
+      const pill = document.getElementById('auto-rotate-pill');
+      if (pill) pill.classList.remove('active');
 
-      graphInstance.cameraPosition(
-        { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
-        node,
-        1500
-      );
+      // Hacer visible y destacar la etiqueta del nodo enfocado
+      if (node.__labelSprite) {
+        node.__labelSprite.visible = true;
+        node.__labelSprite.material.opacity = 1.0;
+        node.__labelSprite.scale.set(24, 4.6, 1);
+      }
 
       openDrawer(node);
     }
@@ -1952,14 +2033,94 @@
       document.getElementById('drawer').classList.remove('open');
     }
 
-    function onSearch(query) {
-      if (!query) return;
-      const q = query.toLowerCase();
-      const match = graphData.nodes.find(n => n.label.toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q)));
-      if (match) {
-        focusNode(match);
+    let searchActive = false;
+    let matchingNodeIds = new Set();
+
+    function clearSearchSpotlight() {
+      searchActive = false;
+      matchingNodeIds.clear();
+      const nodes = (graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || [];
+      nodes.forEach(n => {
+        n.__searchMatch = false;
+        n.__searchConnected = false;
+        if (n.__labelSprite && !n.isRoot) {
+          n.__labelSprite.scale.set(18, 3.5, 1);
+        }
+      });
+      if (graphInstance) {
+        graphInstance.nodeColor(graphInstance.nodeColor());
+        graphInstance.linkColor(graphInstance.linkColor());
       }
     }
+
+    function onSearch(query) {
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        clearSearchSpotlight();
+        return;
+      }
+
+      searchActive = true;
+      matchingNodeIds.clear();
+
+      const nodes = (graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || [];
+      const edges = (graphInstance && graphInstance.graphData && graphInstance.graphData().links) || [];
+
+      // 1. Identificar coincidencias directas
+      const directMatches = [];
+      nodes.forEach(n => {
+        const match = (
+          (n.label && n.label.toLowerCase().includes(q)) ||
+          (n.tags && n.tags.some(t => t.toLowerCase().includes(q))) ||
+          (n.summary && n.summary.toLowerCase().includes(q)) ||
+          (n.group && n.group.toLowerCase().includes(q))
+        );
+        n.__searchMatch = match;
+        if (match) {
+          matchingNodeIds.add(n.id);
+          directMatches.push(n);
+        }
+      });
+
+      // 2. Iluminar conexiones directas con los nodos encontrados
+      edges.forEach(e => {
+        const sId = (e.source && e.source.id) || e.source;
+        const tId = (e.target && e.target.id) || e.target;
+        if (matchingNodeIds.has(sId)) matchingNodeIds.add(tId);
+        if (matchingNodeIds.has(tId)) matchingNodeIds.add(sId);
+      });
+
+      nodes.forEach(n => {
+        n.__searchConnected = matchingNodeIds.has(n.id);
+        if (n.__labelSprite) {
+          if (n.__searchMatch) {
+            n.__labelSprite.visible = true;
+            n.__labelSprite.material.opacity = 1.0;
+            n.__labelSprite.scale.set(24, 4.6, 1);
+          } else if (!n.__searchConnected && !n.isRoot) {
+            n.__labelSprite.visible = false;
+            n.__labelSprite.material.opacity = 0;
+          }
+        }
+      });
+
+      // 3. Volar la cámara hacia el resultado más relevante
+      if (directMatches.length > 0) {
+        const best = directMatches[0];
+        targetLookAt.set(best.x || 0, best.y || 0, best.z || 0);
+        targetRadius = Math.max(180, Math.min(320, 240));
+        showToast('🔍 ' + directMatches.length + ' nodo(s) iluminado(s) para: "' + q + '"');
+      } else {
+        showToast('⚠️ Sin coincidencias para: "' + q + '"');
+      }
+
+      // Re-evaluar colores para atenuar todo lo no relacionado
+      if (graphInstance) {
+        graphInstance.nodeColor(graphInstance.nodeColor());
+        graphInstance.linkColor(graphInstance.linkColor());
+      }
+    }
+
 
     function filterGroup(group) {
       const menu = document.getElementById("taxonomy-menu");
