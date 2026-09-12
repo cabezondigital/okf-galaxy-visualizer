@@ -614,6 +614,22 @@
         <span id="brightness-val-text" class="brightness-val">100%</span>
       </div>
 
+      <!-- Orbital Speed Slider Capsule in Left Hub -->
+      <div class="line-brightness-hud" title="Velocidad orbital y auto-giro (0x = Pausa)">
+        <span class="brightness-icon" title="Velocidad">⏱️</span>
+        <input 
+          type="range" 
+          id="orbital-speed-slider" 
+          class="brightness-slider" 
+          min="0" 
+          max="3.0" 
+          step="0.1" 
+          value="1.0" 
+          oninput="onOrbitalSpeedChange(this.value)"
+        />
+        <span id="speed-val-text" class="brightness-val">1.0x</span>
+      </div>
+
       <div id="auto-rotate-pill" class="auto-rotate-pill active" onclick="toggleRotate()">
         <span>✦</span> Auto-Rotate
       </div>
@@ -650,6 +666,19 @@
     let autoRotate = true;
 
     let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '1.0');
+    let orbitalSpeedMultiplier = parseFloat(localStorage.getItem('okf_orbital_speed') || '1.0');
+
+    function onOrbitalSpeedChange(val) {
+      orbitalSpeedMultiplier = parseFloat(val);
+      const textEl = document.getElementById('speed-val-text');
+      if (textEl) {
+        textEl.innerText = orbitalSpeedMultiplier === 0 ? '0.0x' : orbitalSpeedMultiplier.toFixed(1) + 'x';
+      }
+      localStorage.setItem('okf_orbital_speed', val);
+      if (graphInstance) {
+        graphInstance.linkDirectionalParticleSpeed(link => (link.isStructural ? 0.0025 : 0.005) * orbitalSpeedMultiplier);
+      }
+    }
 
     function onLinkBrightnessChange(val) {
       linkBrightness = parseFloat(val);
@@ -1336,7 +1365,7 @@
             for (let i = 0; i < tId.length; i++) hash = (hash * 31 + tId.charCodeAt(i)) & 0xffffffff;
             return ((Math.abs(hash) % 1000) / 1000) * Math.PI * 2;
           })
-          .linkResolution(16)
+          .linkResolution(6)
           // Enlaces Duros (Troncales Padre) vs Enlaces de Relación (Wikilinks claramente visibles)
           .linkColor(link => {
             if (searchActive) {
@@ -1350,8 +1379,13 @@
             return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
           })
           .linkWidth(link => link.isStructural ? 1.2 : 0.85)
-          .linkDirectionalParticles(link => link.isStructural ? 2 : 1)
-          .linkDirectionalParticleSpeed(link => link.isStructural ? 0.002 : 0.005)
+          .linkDirectionalParticles(link => {
+            if (orbitalSpeedMultiplier === 0) return 0;
+            if (link.isStructural) return 1;
+            if (focusedNodeId && (link.source.id === focusedNodeId || link.target.id === focusedNodeId)) return 1;
+            return 0;
+          })
+          .linkDirectionalParticleSpeed(link => (link.isStructural ? 0.0025 : 0.005) * orbitalSpeedMultiplier)
           .linkDirectionalParticleWidth(link => link.isStructural ? 2.0 : 1.3)
           .linkDirectionalParticleColor(link => link.isStructural ? '#ffffff' : '#38bdf8')
           .onNodeClick(node => focusNode(node))
@@ -1422,6 +1456,8 @@
 
         // Pre-compute galaxy coordinates and orbital parameters
         setupGalaxyParameters(data.nodes);
+        window.__cachedAllNodes = data.nodes;
+        cachedRootNodes = data.nodes.filter(n => n.isRoot);
 
         // 2. Dual Physics Engine: 3D Spherical Cortex vs 3D Galaxy (Stars & Planets)
         graphInstance.d3Force('brain_physics', () => {
@@ -1452,7 +1488,8 @@
               if (n.isRoot) {
                 // ⭐ SOL / ESTRELLA CENTRAL (Resplandor pulsante vivo)
                 if (n.__stellarFlare) {
-                  const pulse = 1.0 + Math.sin(Date.now() * 0.0022 + i * 1.4) * 0.09;
+                  const pulseSpeed = Math.max(0.05, orbitalSpeedMultiplier);
+                  const pulse = 1.0 + Math.sin(Date.now() * 0.0022 * pulseSpeed + i * 1.4) * 0.09;
                   n.__stellarFlare.scale.set(24 * pulse, 24 * pulse, 1);
                 }
                 if (!n.__isDraggingRoot) {
@@ -1480,7 +1517,7 @@
                 }
 
                 // Avance orbital armónico continuo y constante
-                n.solarOrbit.currentAngle += (n.solarOrbit.orbitSpeed || 0.006);
+                n.solarOrbit.currentAngle += (n.solarOrbit.orbitSpeed || 0.006) * orbitalSpeedMultiplier;
                 const ang = n.solarOrbit.currentAngle;
                 const r = n.solarOrbit.radius;
 
@@ -1545,12 +1582,13 @@
           }
         });
 
-        // D3 Force Link & Charge: gentle attraction to parent, strong repulsion between nodes so they NEVER stack
+        // D3 Force Link & Charge: En modo Galaxia apagadas para 0 consumo CPU innecesario
+        const isGalaxyInitial = (currentMode === 'galaxy');
         if (graphInstance.d3Force('charge')) {
-          graphInstance.d3Force('charge').strength(-90).distanceMax(380);
+          graphInstance.d3Force('charge').strength(isGalaxyInitial ? 0 : -90).distanceMax(380);
         }
         if (graphInstance.d3Force('link')) {
-          graphInstance.d3Force('link').distance(l => l.isStructural ? 70 : 120).strength(0.04);
+          graphInstance.d3Force('link').distance(l => l.isStructural ? 70 : 120).strength(isGalaxyInitial ? 0 : 0.04);
         }
 
         // Center Hologram
@@ -1697,13 +1735,21 @@
       }
     }
 
+    // Cache for root nodes to avoid creating arrays inside 60FPS tick()
+    let cachedRootNodes = [];
+    let lodFrameCounter = 0;
+
     // Proximity LOD: Labels fade in when zooming in / approaching any node (root or subnode)
+    // Optimizado: Distancia al cuadrado (evita Math.sqrt innecesarios) y throttled a cada 2 frames
     function updateLabelLOD() {
       if (!graphInstance) return;
+      lodFrameCounter++;
+      if (lodFrameCounter % 2 !== 0 && !searchActive) return;
+
       const cam = graphInstance.camera();
       if (!cam) return;
       const camPos = cam.position;
-      const nodes = (graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || (graphData && graphData.nodes) || [];
+      const nodes = window.__cachedAllNodes || ((graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || (graphData && graphData.nodes) || []);
 
       for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i];
@@ -1711,36 +1757,41 @@
         if (!sprite) continue;
 
         if (n.isRoot) {
-          sprite.visible = true;
-          sprite.material.opacity = 0.95;
+          if (!sprite.visible) sprite.visible = true;
+          if (sprite.material.opacity !== 0.95) sprite.material.opacity = 0.95;
+          continue;
+        }
+
+        // Si hay búsqueda activa o es el nodo enfocado, mantener visible
+        if (n.__searchMatch || n.id === focusedNodeId) {
+          if (!sprite.visible) sprite.visible = true;
+          if (sprite.material.opacity !== 1.0) sprite.material.opacity = 1.0;
+          continue;
+        }
+        if (searchActive && !n.__searchMatch) {
+          if (sprite.visible) {
+            sprite.visible = false;
+            sprite.material.opacity = 0;
+          }
           continue;
         }
 
         const dx = (n.x || 0) - camPos.x;
         const dy = (n.y || 0) - camPos.y;
         const dz = (n.z || 0) - camPos.z;
-        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        const distSq = dx * dx + dy * dy + dz * dz;
 
-        // Si hay búsqueda activa o es el nodo enfocado, mantener visible
-        if (n.__searchMatch || n.id === focusedNodeId) {
-          sprite.visible = true;
-          sprite.material.opacity = 1.0;
-          continue;
-        }
-        if (searchActive && !n.__searchMatch) {
-          sprite.visible = false;
-          sprite.material.opacity = 0;
-          continue;
-        }
-
-        // Rango de visibilidad ampliado: legible desde 580 unidades de distancia
-        if (dist < 580) {
+        // Rango de visibilidad ampliado: 580^2 = 336400
+        if (distSq < 336400) {
+          const dist = Math.sqrt(distSq);
           const alpha = Math.max(0, Math.min(0.95, (580 - dist) / 220));
           sprite.material.opacity = alpha;
           sprite.visible = alpha > 0.04;
         } else {
-          sprite.visible = false;
-          sprite.material.opacity = 0;
+          if (sprite.visible) {
+            sprite.visible = false;
+            sprite.material.opacity = 0;
+          }
         }
       }
     }
@@ -1751,9 +1802,9 @@
         requestAnimationFrame(tick);
         if (!graphInstance) return;
 
-        // Subtle, elegant Auto-Giro rotation (0.0012 rad/frame)
-        if (autoRotate) {
-          targetTheta += 0.0012;
+        // Subtle, elegant Auto-Giro rotation (0.0012 rad/frame * multiplier)
+        if (autoRotate && orbitalSpeedMultiplier > 0) {
+          targetTheta += 0.0012 * orbitalSpeedMultiplier;
         }
 
         // Smooth physical interpolation (Lerp factor 0.065 for luxurious ease-in/ease-out)
@@ -1764,17 +1815,17 @@
         applyCameraPosition();
         updateLabelLOD();
 
-        // Actualizar posición de los anillos orbitales siguiendo a sus Soles
+        // Actualizar posición de los anillos orbitales siguiendo a sus Soles (cero asignación de memoria en tick)
         if (window.__galaxyOrbitsMasterGroup) {
           window.__galaxyOrbitsMasterGroup.visible = (currentMode === 'galaxy');
-          if (currentMode === 'galaxy') {
-            const nodes = (graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || (graphData && graphData.nodes) || [];
-            nodes.filter(n => n.isRoot).forEach(rn => {
+          if (currentMode === 'galaxy' && cachedRootNodes.length > 0) {
+            for (let i = 0; i < cachedRootNodes.length; i++) {
+              const rn = cachedRootNodes[i];
               const holder = window.__clusterOrbitGroups && (window.__clusterOrbitGroups[rn.group] || window.__clusterOrbitGroups[rn.id]);
               if (holder) {
                 holder.position.set(rn.x || 0, rn.y || 0, rn.z || 0);
               }
-            });
+            }
           }
         }
       }
@@ -2136,6 +2187,17 @@
     }
 
     async function startApp() {
+      // Sync initial slider values from localStorage
+      const speedSlider = document.getElementById('orbital-speed-slider');
+      const speedText = document.getElementById('speed-val-text');
+      if (speedSlider) speedSlider.value = orbitalSpeedMultiplier;
+      if (speedText) speedText.innerText = orbitalSpeedMultiplier === 0 ? '0.0x' : orbitalSpeedMultiplier.toFixed(1) + 'x';
+
+      const brightSlider = document.getElementById('link-brightness-slider');
+      const brightText = document.getElementById('brightness-val-text');
+      if (brightSlider) brightSlider.value = linkBrightness;
+      if (brightText) brightText.innerText = Math.round(linkBrightness * 100) + '%';
+
       await initGraph();
       // Restaurar modo guardado en localStorage o hash de la URL
       const savedMode = localStorage.getItem('okf_viz_mode') || (window.location.hash === '#galaxy' ? 'galaxy' : 'spherical');
