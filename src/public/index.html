@@ -593,11 +593,11 @@
       <div class="brand-title">🧠 OKF Galaxy Visualizer</div>
       <div class="badge">OKF v0.2 Standard</div>
       <div class="mode-selector">
-        <button id="mode-spherical-btn" class="mode-btn active" onclick="switchVisualizationMode('spherical')" title="3D Spherical Neural Cortex Mode">
-          <span class="mode-icon">🌐</span> 3D Spherical Cortex
-        </button>
-        <button id="mode-galaxy-btn" class="mode-btn" onclick="switchVisualizationMode('galaxy')" title="3D Galaxy Mode: Stellar systems and planetary orbits">
+        <button id="mode-galaxy-btn" class="mode-btn active" onclick="switchVisualizationMode('galaxy')" title="3D Galaxy Mode: Stellar systems and planetary orbits">
           <span class="mode-icon">🌌</span> 3D Galaxy
+        </button>
+        <button id="mode-spherical-btn" class="mode-btn" onclick="switchVisualizationMode('spherical')" title="3D Spherical Neural Cortex Mode">
+          <span class="mode-icon">🌐</span> 3D Cortex
         </button>
       </div>
     </div>
@@ -822,7 +822,7 @@
       }
     });
 
-    let currentMode = 'spherical'; // 'spherical' | 'galaxy'
+    let currentMode = 'galaxy'; // 'galaxy' | 'spherical'
     let currentSphereRadius = 240;
     const SPHERE_RADIUS = 270;
 
@@ -1492,7 +1492,7 @@
               const sId = (link.source && link.source.id) || link.source;
               const tId = (link.target && link.target.id) || link.target;
               const isRelevant = matchingNodeIds.has(sId) && matchingNodeIds.has(tId);
-              if (!isRelevant) return 'rgba(255, 255, 255, 0.02)';
+              if (!isRelevant) return 'rgba(0, 0, 0, 0)';
               return '#38bdf8';
             }
             const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
@@ -1501,6 +1501,11 @@
           .linkWidth(link => link.isStructural ? 1.2 : 0.85)
           .linkDirectionalParticles(link => {
             if (orbitalSpeedMultiplier === 0) return 0;
+            if (searchActive) {
+              const sId = (link.source && link.source.id) || link.source;
+              const tId = (link.target && link.target.id) || link.target;
+              if (!matchingNodeIds.has(sId) || !matchingNodeIds.has(tId)) return 0;
+            }
             if (link.isStructural) return 1;
             if (focusedNodeId && (link.source.id === focusedNodeId || link.target.id === focusedNodeId)) return 1;
             return 0;
@@ -2210,17 +2215,27 @@
     function clearSearchSpotlight() {
       searchActive = false;
       matchingNodeIds.clear();
-      const nodes = (graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || [];
+      const nodes = window.__cachedAllNodes || ((graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || (graphData && graphData.nodes) || []);
       nodes.forEach(n => {
         n.__searchMatch = false;
         n.__searchConnected = false;
+        if (n.__threeObj) {
+          n.__threeObj.visible = true;
+        }
         if (n.__labelSprite && !n.isRoot) {
           n.__labelSprite.scale.set(18, 3.5, 1);
+          n.__labelSprite.visible = false;
         }
       });
+      if (window.__clusterOrbitGroups) {
+        Object.values(window.__clusterOrbitGroups).forEach(grpObj => {
+          grpObj.visible = true;
+        });
+      }
       if (graphInstance) {
         graphInstance.nodeColor(graphInstance.nodeColor());
         graphInstance.linkColor(graphInstance.linkColor());
+        graphInstance.linkDirectionalParticles(graphInstance.linkDirectionalParticles());
       }
     }
 
@@ -2234,61 +2249,87 @@
       searchActive = true;
       matchingNodeIds.clear();
 
-      const nodes = (graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || [];
-      const edges = (graphInstance && graphInstance.graphData && graphInstance.graphData().links) || [];
+      const nodes = window.__cachedAllNodes || ((graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || (graphData && graphData.nodes) || []);
+      const edges = (graphInstance && graphInstance.graphData && graphInstance.graphData().links) || (graphData && graphData.edges) || [];
 
       // 1. Identificar coincidencias directas
+      const directMatchSet = new Set();
       const directMatches = [];
       nodes.forEach(n => {
-        const match = (
+        const match = !!(
           (n.label && n.label.toLowerCase().includes(q)) ||
-          (n.tags && n.tags.some(t => t.toLowerCase().includes(q))) ||
+          (n.tags && n.tags.some(t => (t || '').toLowerCase().includes(q))) ||
           (n.summary && n.summary.toLowerCase().includes(q)) ||
-          (n.group && n.group.toLowerCase().includes(q))
+          (n.id && n.id.toLowerCase().includes(q))
         );
         n.__searchMatch = match;
         if (match) {
+          directMatchSet.add(n.id);
           matchingNodeIds.add(n.id);
           directMatches.push(n);
         }
       });
 
-      // 2. Iluminar conexiones directas con los nodos encontrados
+      // 2. Incluir únicamente relaciones semánticas directas (NO propagar por troncales que arrastran toda la categoría)
       edges.forEach(e => {
         const sId = (e.source && e.source.id) || e.source;
         const tId = (e.target && e.target.id) || e.target;
-        if (matchingNodeIds.has(sId)) matchingNodeIds.add(tId);
-        if (matchingNodeIds.has(tId)) matchingNodeIds.add(sId);
+        if (directMatchSet.has(sId) && (!tId.startsWith('root_') || directMatchSet.has(tId))) {
+          matchingNodeIds.add(tId);
+        }
+        if (directMatchSet.has(tId) && (!sId.startsWith('root_') || directMatchSet.has(sId))) {
+          matchingNodeIds.add(sId);
+        }
       });
 
+      // 3. OCULTAR TODOS LOS NODOS Y SUBNODOS SIN RELACIÓN
       nodes.forEach(n => {
-        n.__searchConnected = matchingNodeIds.has(n.id);
+        const isRelated = matchingNodeIds.has(n.id);
+        n.__searchConnected = isRelated && !n.__searchMatch;
+
+        // Ocultar o mostrar el objeto 3D en la escena Three.js
+        if (n.__threeObj) {
+          n.__threeObj.visible = isRelated;
+        }
+
         if (n.__labelSprite) {
           if (n.__searchMatch) {
             n.__labelSprite.visible = true;
             n.__labelSprite.material.opacity = 1.0;
             n.__labelSprite.scale.set(24, 4.6, 1);
-          } else if (!n.__searchConnected && !n.isRoot) {
+          } else if (isRelated) {
+            n.__labelSprite.visible = true;
+            n.__labelSprite.material.opacity = 0.85;
+          } else {
             n.__labelSprite.visible = false;
             n.__labelSprite.material.opacity = 0;
           }
         }
       });
 
-      // 3. Volar la cámara hacia el resultado más relevante
+      // 4. Ocultar anillos de órbita de clústeres no relacionados
+      if (window.__clusterOrbitGroups) {
+        Object.entries(window.__clusterOrbitGroups).forEach(([grp, grpObj]) => {
+          const hasVisibleInGroup = nodes.some(n => n.group === grp && matchingNodeIds.has(n.id));
+          grpObj.visible = hasVisibleInGroup;
+        });
+      }
+
+      // 5. Volar la cámara hacia el nodo encontrado principal
       if (directMatches.length > 0) {
         const best = directMatches[0];
         targetLookAt.set(best.x || 0, best.y || 0, best.z || 0);
         targetRadius = Math.max(180, Math.min(320, 240));
-        showToast('🔍 ' + directMatches.length + ' nodo(s) iluminado(s) para: "' + q + '"');
+        showToast('🔍 ' + directMatches.length + ' coincidencia(s) encontrada(s)');
       } else {
         showToast('⚠️ Sin coincidencias para: "' + q + '"');
       }
 
-      // Re-evaluar colores para atenuar todo lo no relacionado
+      // 6. Refrescar colores de links y partículas
       if (graphInstance) {
         graphInstance.nodeColor(graphInstance.nodeColor());
         graphInstance.linkColor(graphInstance.linkColor());
+        graphInstance.linkDirectionalParticles(graphInstance.linkDirectionalParticles());
       }
     }
 
@@ -2329,9 +2370,11 @@
       updateHudToggleState();
 
       await initGraph();
-      // Restaurar modo guardado en localStorage o hash de la URL
-      const savedMode = localStorage.getItem('okf_viz_mode') || (window.location.hash === '#galaxy' ? 'galaxy' : 'spherical');
-      if (savedMode === 'galaxy') {
+      // Restaurar modo: Por defecto siempre 3D Galaxy activo y en órbita
+      const savedMode = localStorage.getItem('okf_viz_mode') || 'galaxy';
+      if (savedMode === 'spherical') {
+        setTimeout(() => switchVisualizationMode('spherical', true), 120);
+      } else {
         setTimeout(() => switchVisualizationMode('galaxy', true), 120);
       }
       if (window.location.hash.includes('zoom=close')) {
