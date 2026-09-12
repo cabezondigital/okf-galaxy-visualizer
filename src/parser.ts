@@ -153,20 +153,17 @@ export class OkfVaultParser {
           imageUrl = imgMatch[1];
         }
 
-        // Clean excerpt summary
+        // Clean markdown body (strip YAML frontmatter)
         const summaryClean = rawContent
-          .replace(/---[\s\S]*?---/, '') // remove YAML frontmatter
-          .replace(/#+\s*.+/g, '') // remove headings
-          .replace(/\[\[|\]\]/g, '') // remove wikilinks syntax
-          .trim()
-          .slice(0, 240);
+          .replace(/^---[\s\S]*?---\s*/, '')
+          .trim();
 
         const node: GraphNode = {
           id: slug,
           label,
           group: clusterName,
           filePath: fullPath,
-          summary: summaryClean ? summaryClean + '...' : 'No description provided.',
+          summary: summaryClean || 'No description provided.',
           tags: Array.from(new Set(tags)),
           imageUrl,
           color: clusterColor,

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.73.3/dist/3d-force-graph.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
   <style>
     :root {
       --bg: #000000;
@@ -21,6 +22,8 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     body { background: #000000; color: var(--text); overflow: hidden; height: 100vh; width: 100vw; display: flex; flex-direction: column; user-select: none; }
+    #3d-graph { cursor: grab; }
+    #3d-graph.grabbing { cursor: grabbing; }
     
     /* Top Bar: Ultra Minimal & Sleek */
     header {
@@ -415,7 +418,50 @@
     .node-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
     .tag { font-size: 0.68rem; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px; }
     
-    .content-box { background: rgba(0,0,0,0.55); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.82rem; line-height: 1.6; color: #cbd5e1; white-space: pre-wrap; word-break: break-word; max-height: 360px; overflow-y: auto; }
+    .content-box {
+      background: rgba(0,0,0,0.55);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 0.84rem;
+      line-height: 1.65;
+      color: #cbd5e1;
+      word-break: break-word;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .content-box p { margin-bottom: 10px; }
+    .content-box p:last-child { margin-bottom: 0; }
+    .content-box ul, .content-box ol { padding-left: 0; margin: 8px 0; list-style: none; }
+    .content-box li { position: relative; padding-left: 18px; margin-bottom: 8px; line-height: 1.5; }
+    .content-box li::before { content: "•"; position: absolute; left: 4px; color: var(--accent-cyan); font-weight: bold; }
+    .content-box strong { color: #ffffff; font-weight: 600; }
+    .content-box code {
+      background: rgba(255, 255, 255, 0.08);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82em;
+    }
+    .content-box h1, .content-box h2, .content-box h3, .content-box h4 {
+      color: #ffffff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 14px 0 8px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .content-box h1:first-child, .content-box h2:first-child, .content-box h3:first-child { margin-top: 0; }
+    .inline-wikilink {
+      color: #38bdf8;
+      border-bottom: 1px dashed rgba(56, 189, 248, 0.5);
+      cursor: pointer;
+      font-weight: 500;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .inline-wikilink:hover { color: #7dd3fc; border-bottom-color: #7dd3fc; }
     .preview-img { width: 100%; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; }
 
     .wikilinks-list { display: flex; flex-direction: column; gap: 6px; }
@@ -587,12 +633,12 @@
       <div id="drawer-image-container"></div>
 
       <div>
-        <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">OKF Markdown Content</h4>
+        <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Detalles de la Nota</h4>
         <div id="drawer-content" class="content-box"></div>
       </div>
 
       <div id="drawer-links-section">
-        <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Conexiones Sinápticas (Wikilinks)</h4>
+        <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Conexiones Sinápticas</h4>
         <div id="drawer-wikilinks" class="wikilinks-list"></div>
       </div>
     </aside>
@@ -716,11 +762,14 @@
       const nodes = (graphInstance && graphInstance.graphData()) ? graphInstance.graphData().nodes : [];
       const goldenRatio = (1 + Math.sqrt(5)) / 2;
 
-      // Frenar instantáneamente cualquier inercia errática previa
+      // Frenar instantáneamente cualquier inercia errática previa y liberar anclajes
       nodes.forEach(n => {
         n.vx = 0;
         n.vy = 0;
         n.vz = 0;
+        n.fx = undefined;
+        n.fy = undefined;
+        n.fz = undefined;
       });
 
       if (mode === 'galaxy') {
@@ -730,6 +779,8 @@
         const rootsMap = new Map();
         nodes.filter(n => n.isRoot).forEach(rn => {
           rootsMap.set(rn.group, rn);
+          rootsMap.set(rn.group + 's', rn);
+          if (rn.group && rn.group.endsWith('s')) rootsMap.set(rn.group.slice(0, -1), rn);
           rn.x = rn.starTargetX || 0;
           rn.y = rn.starTargetY || 0;
           rn.z = rn.starTargetZ || 0;
@@ -738,7 +789,7 @@
 
         // Posicionar cada planeta en su órbita concéntrica correspondiente alrededor de su Sol
         nodes.filter(n => !n.isRoot).forEach(child => {
-          const star = rootsMap.get(child.group);
+          const star = rootsMap.get(child.group) || rootsMap.get(child.group + 's') || (child.group && child.group.endsWith('s') && rootsMap.get(child.group.slice(0, -1)));
           if (star && child.solarOrbit) {
             const ang = child.solarOrbit.currentAngle;
             const r = child.solarOrbit.radius;
@@ -758,6 +809,10 @@
           }
         });
 
+        if (window.__galaxyOrbitsMasterGroup) {
+          window.__galaxyOrbitsMasterGroup.visible = true;
+        }
+
         if (graphInstance && graphInstance.d3Force('charge')) {
           graphInstance.d3Force('charge').strength(0);
         }
@@ -766,6 +821,10 @@
         }
       } else {
         showToast('🌐 3D Spherical Cortex Mode: Neural cortical surface dynamics');
+
+        if (window.__galaxyOrbitsMasterGroup) {
+          window.__galaxyOrbitsMasterGroup.visible = false;
+        }
 
         // Restauración limpia e inmediata sobre la corteza esférica de Fibonacci
         const roots = nodes.filter(n => n.isRoot);
@@ -799,8 +858,24 @@
       }
 
       if (graphInstance) {
-        if (mode === "galaxy") { graphInstance.d3AlphaDecay(0); graphInstance.d3AlphaTarget(0.12); graphInstance.d3VelocityDecay(0.16); } else { graphInstance.d3AlphaTarget(0); graphInstance.d3AlphaDecay(0.02); graphInstance.d3VelocityDecay(0.4); }
-        graphInstance.d3ReheatSimulation();
+        if (mode === 'galaxy') {
+          graphInstance.d3AlphaDecay(0);
+          graphInstance.d3VelocityDecay(0.16);
+        } else {
+          graphInstance.d3AlphaDecay(0.02);
+          graphInstance.d3VelocityDecay(0.35);
+        }
+
+        // Re-evaluar curvas de enlaces dinámicamente según el modo seleccionado
+        graphInstance.linkCurvature(graphInstance.linkCurvature());
+        graphInstance.linkCurveRotation(graphInstance.linkCurveRotation());
+        graphInstance.linkColor(graphInstance.linkColor());
+
+        try {
+          graphInstance.d3ReheatSimulation();
+        } catch (e) {
+          console.warn('Reheat simulation:', e);
+        }
       }
     }
 
@@ -1224,22 +1299,22 @@
 
             return group;
           })
-          // SPLINES CURVILÍNEOS 3D: Arcos espaciales suaves y majestuosos
+          // SPLINES CURVILÍNEOS 3D: Arcos espaciales continuos, suaves y majestuosos
           .linkCurvature(link => {
             if (currentMode === 'galaxy') {
-              return link.isStructural ? 0.12 : 0.42;
+              return link.isStructural ? 0.35 : 0.55;
             }
-            return link.isStructural ? 0.04 : 0.22;
+            return link.isStructural ? 0.28 : 0.48;
           })
           .linkCurveRotation(link => {
-            if (link.isStructural) return 0.25;
             const sId = (link.source && (link.source.id || link.source)) || '';
             const tId = (link.target && (link.target.id || link.target)) || '';
             let hash = 0;
-            for (let i = 0; i < sId.length; i++) hash += sId.charCodeAt(i);
-            for (let i = 0; i < tId.length; i++) hash += tId.charCodeAt(i);
-            return (hash % 6.28);
+            for (let i = 0; i < sId.length; i++) hash = (hash * 31 + sId.charCodeAt(i)) & 0xffffffff;
+            for (let i = 0; i < tId.length; i++) hash = (hash * 31 + tId.charCodeAt(i)) & 0xffffffff;
+            return ((Math.abs(hash) % 1000) / 1000) * Math.PI * 2;
           })
+          .linkResolution(16)
           // Enlaces Duros (Troncales Padre) vs Enlaces de Relación (Wikilinks claramente visibles)
           .linkColor(link => {
             const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
@@ -1252,6 +1327,7 @@
           .linkDirectionalParticleColor(link => link.isStructural ? '#ffffff' : '#38bdf8')
           .onNodeClick(node => focusNode(node))
           .onNodeDrag((node, translate) => {
+            isNodeBeingDragged = true;
             if (!node) return;
             if (node.isRoot) {
               node.__isDraggingRoot = true;
@@ -1261,6 +1337,7 @@
             }
           })
           .onNodeDragEnd(node => {
+            setTimeout(() => { isNodeBeingDragged = false; }, 50);
             if (node && node.isRoot) {
               node.__isDraggingRoot = false;
               // Release fixed pin so it elastically returns to the spherical shell
@@ -1311,6 +1388,8 @@
             const n = nodes[i];
             if (n.isRoot) {
               allRootsMap.set(n.group, n);
+              allRootsMap.set(n.group + 's', n);
+              if (n.group && n.group.endsWith('s')) allRootsMap.set(n.group.slice(0, -1), n);
               if (n.__isDraggingRoot) {
                 draggedRootsMap.set(n.group, n);
               }
@@ -1518,10 +1597,15 @@
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         }
 
-        // Auto-rotation
+        // Auto-rotation & Pure Trackball Controls
         if (currentMode === "galaxy") { graphInstance.d3AlphaDecay(0); graphInstance.d3VelocityDecay(0.16); }
-        graphInstance.controls().autoRotate = false;
-        graphInstance.controls().autoRotateSpeed = 0.55;
+        const controls = graphInstance.controls();
+        if (controls) {
+          controls.autoRotate = false;
+          controls.enableRotate = false; // Desactivado para que no pelee con el control gestual de esfera 3D
+          controls.enablePan = false;
+          controls.enableZoom = false;   // Manejado con suavidad cinemática por nuestro wheel listener
+        }
 
         // Initial camera framing
         graphInstance.cameraPosition({ z: 620 });
@@ -1638,37 +1722,113 @@
       targetRadius = Math.max(160, Math.min(1800, targetRadius * factor));
     }, { passive: true });
 
-    // Mini-Sphere Drag Handler: rotates sphere around central origin with smooth momentum
+    // Unified 3D Virtual Trackball & Globe Rotation
+    // Rota la esfera exactamente en la dirección del gesto como si le pasaras la mano por encima a una bola 3D
+    function rotateSphere(yawDelta, pitchDelta) {
+      targetTheta += yawDelta;
+      targetPhi += pitchDelta;
+      // Evitar que la cámara se invierta en los polos exactos
+      targetPhi = Math.max(0.10, Math.min(Math.PI - 0.10, targetPhi));
+    }
+
+    let isNodeBeingDragged = false;
+
     function setupGlassOrbDrag() {
+      const graphContainer = document.getElementById('3d-graph');
       const orb = document.getElementById('glass-orb');
       let isDragging = false;
       let prevX = 0;
       let prevY = 0;
+      let velX = 0;
+      let velY = 0;
 
-      orb.addEventListener('mousedown', (e) => {
-        if (e.target.classList.contains('orb-arrow') || e.target.classList.contains('orb-center')) return;
+      function startDrag(clientX, clientY) {
+        if (isNodeBeingDragged) return;
         isDragging = true;
-        prevX = e.clientX;
-        prevY = e.clientY;
-      });
+        prevX = clientX;
+        prevY = clientY;
+        velX = 0;
+        velY = 0;
+        if (graphContainer) graphContainer.classList.add('grabbing');
+      }
 
-      window.addEventListener('mousemove', (e) => {
+      function updateDrag(clientX, clientY) {
         if (!isDragging) return;
-        const dx = e.clientX - prevX;
-        const dy = e.clientY - prevY;
-        prevX = e.clientX;
-        prevY = e.clientY;
-        rotateSphere(-dx * 0.009, -dy * 0.009);
+        const dx = clientX - prevX;
+        const dy = clientY - prevY;
+        prevX = clientX;
+        prevY = clientY;
+
+        velX = dx;
+        velY = dy;
+
+        // FÍSICA DE BOLA 3D:
+        // Arrastrar hacia arriba (dy < 0) -> la esfera rueda hacia arriba (pitchDelta > 0)
+        // Arrastrar hacia abajo (dy > 0) -> la esfera rueda hacia abajo (pitchDelta < 0)
+        // Arrastrar hacia la derecha (dx > 0) -> la esfera gira a la derecha (yawDelta < 0)
+        // Arrastrar hacia la izquierda (dx < 0) -> la esfera gira a la izquierda (yawDelta > 0)
+        const sensitivity = 0.0042;
+        const yawDelta = -dx * sensitivity;
+        const pitchDelta = -dy * sensitivity;
+
+        rotateSphere(yawDelta, pitchDelta);
+      }
+
+      function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        if (graphContainer) graphContainer.classList.remove('grabbing');
+
+        // Suave inercia física de despedida
+        if (Math.abs(velX) > 1 || Math.abs(velY) > 1) {
+          rotateSphere(-velX * 0.003, -velY * 0.003);
+        }
+      }
+
+      // 1. Drag en el Canvas 3D principal
+      if (graphContainer) {
+        graphContainer.addEventListener('mousedown', (e) => {
+          // Si hace clic con botón secundario o en interfaz, ignorar
+          if (e.button !== 0) return;
+          startDrag(e.clientX, e.clientY);
+        });
+      }
+
+      // 2. Drag en el mini orbe HUD
+      if (orb) {
+        orb.addEventListener('mousedown', (e) => {
+          if (e.target.classList.contains('orb-arrow') || e.target.classList.contains('orb-center')) return;
+          startDrag(e.clientX, e.clientY);
+        });
+      }
+
+      // 3. Listeners globales para arrastre continuo incluso al salir del canvas
+      window.addEventListener('mousemove', (e) => {
+        updateDrag(e.clientX, e.clientY);
       });
 
-      window.addEventListener('mouseup', () => { isDragging = false; });
-    }
+      window.addEventListener('mouseup', () => {
+        endDrag();
+      });
 
-    function rotateSphere(yawDelta, pitchDelta) {
-      targetTheta += yawDelta;
-      targetPhi += pitchDelta;
-      // Clamp elevation between poles
-      targetPhi = Math.max(0.15, Math.min(Math.PI - 0.15, targetPhi));
+      // 4. Soporte táctil y gestures
+      if (graphContainer) {
+        graphContainer.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 1) {
+            startDrag(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+          if (e.touches.length === 1) {
+            updateDrag(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => {
+          endDrag();
+        });
+      }
     }
 
     function zoomCamera(scaleFactor) {
@@ -1700,6 +1860,49 @@
       openDrawer(node);
     }
 
+    function renderMarkdownToHtml(markdownText) {
+      if (!markdownText) return '<p style="color: var(--text-muted);">Sin contenido adicional.</p>';
+      
+      let text = markdownText.replace(/^---[\s\S]*?---\s*/, '');
+      
+      // Transform inline [[wikilinks]] into interactive spans
+      text = text.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (match, target, alias) => {
+        const display = (alias || target).trim();
+        const safeTarget = target.trim().replace(/"/g, '&quot;');
+        return `<span class="inline-wikilink" data-target="${safeTarget}" onclick="selectByLabel(this.dataset.target)">🔗 ${display}</span>`;
+      });
+
+      if (typeof marked !== 'undefined' && marked.parse) {
+        try {
+          return marked.parse(text);
+        } catch(e) {
+          console.warn('marked parse error:', e);
+        }
+      }
+
+      // Fallback formatting
+      return text
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/^- (.*)$/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+        .replace(/\n\n/g, '<br><br>');
+    }
+
+    function selectByLabel(targetLabel) {
+      if (!targetLabel) return;
+      const cleanTarget = targetLabel.toLowerCase().replace(/^\[\[|\]\]$/g, '').trim();
+      const match = graphData.nodes.find(n => 
+        n.label.toLowerCase() === cleanTarget || 
+        n.id.toLowerCase() === cleanTarget ||
+        n.label.toLowerCase().includes(cleanTarget)
+      );
+      if (match) {
+        focusNode(match);
+      }
+    }
+
     function openDrawer(node) {
       const drawer = document.getElementById('drawer');
       const tagEl = document.getElementById('drawer-group');
@@ -1720,19 +1923,20 @@
         imgContainer.innerHTML = '';
       }
 
-      document.getElementById('drawer-content').innerText = node.summary;
+      document.getElementById('drawer-content').innerHTML = renderMarkdownToHtml(node.summary);
 
       // Synaptic links
       const connectedEdges = graphData.edges.filter(e => e.source === node.id || e.target === node.id);
       const linksContainer = document.getElementById('drawer-wikilinks');
       if (connectedEdges.length === 0) {
-        linksContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem;">No direct connections</span>';
+        linksContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem;">Sin conexiones directas</span>';
       } else {
         linksContainer.innerHTML = connectedEdges.map(e => {
           const neighborId = e.source === node.id ? e.target : e.source;
           const neighborNode = graphData.nodes.find(n => n.id === neighborId);
-          const label = neighborNode ? neighborNode.label : neighborId;
-          return '<div class="wikilink-item" data-id="' + neighborId + '" onclick="selectById(this.dataset.id)">🔗 [[' + label + ']]</div>';
+          let label = neighborNode ? neighborNode.label : neighborId;
+          label = label.replace(/^\[\[|\]\]$/g, '').trim();
+          return '<div class="wikilink-item" data-id="' + neighborId + '" onclick="selectById(this.dataset.id)">🔗 ' + label + '</div>';
         }).join('');
       }
 
