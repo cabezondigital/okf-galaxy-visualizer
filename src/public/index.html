@@ -1345,12 +1345,19 @@
           nodeDegreeMap.set(t, (nodeDegreeMap.get(t) || 0) + 1);
         });
 
-        const formattedLinks = (data.edges || []).map(e => ({
-          source: e.source,
-          target: e.target,
-          label: e.label,
-          isStructural: !!e.isStructural
-        }));
+        const validNodeIds = new Set((data.nodes || []).map(n => n.id));
+        const formattedLinks = (data.edges || [])
+          .filter(e => {
+            const s = (e.source && e.source.id) || e.source;
+            const t = (e.target && e.target.id) || e.target;
+            return validNodeIds.has(s) && validNodeIds.has(t);
+          })
+          .map(e => ({
+            source: (e.source && e.source.id) || e.source,
+            target: (e.target && e.target.id) || e.target,
+            label: e.label,
+            isStructural: !!e.isStructural
+          }));
 
         const elem = document.getElementById('3d-graph');
         graphInstance = ForceGraph3D()(elem)
