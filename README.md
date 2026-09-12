@@ -32,6 +32,8 @@ The **OKF 3D Galaxy Visualizer** transforms standard, text-based Markdown knowle
 | Galactic Core & Armillary Rings | Clustered Stellar Nebulae & Splines |
 | :---: | :---: |
 | <img src="assets/galaxy_preview_overview.png" width="100%" /> | <img src="assets/galaxy_preview_clusters.png" width="100%" /> |
+| **Search Spotlight & Fly-To Focus** | **Spherical Cortex Neural Shell** |
+| <img src="assets/galaxy_preview_spotlight.png" width="100%" /> | <img src="assets/galaxy_preview_spherical.png" width="100%" /> |
 
 ---
 ## ✨ Features
