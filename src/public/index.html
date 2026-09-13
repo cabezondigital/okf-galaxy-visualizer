@@ -250,75 +250,7 @@
       transform: scale(1.15);
     }
 
-    /* Top Chromatic Legend Bar (Moved to top so bottom HUD is 100% free) */
-    .chromatic-galaxy-legend {
-      position: absolute;
-      top: 66px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(6, 10, 20, 0.82);
-      backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 30px;
-      padding: 5px 12px 5px 16px;
-      z-index: 25;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.75);
-      pointer-events: auto;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 92vw;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    body.hud-hidden .chromatic-galaxy-legend {
-      display: none !important;
-    }
-    .legend-close-btn {
-      background: none;
-      border: none;
-      color: #64748b;
-      font-size: 0.85rem;
-      cursor: pointer;
-      margin-left: 6px;
-      padding: 2px 6px;
-      border-radius: 50%;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s ease;
-    }
-    .legend-close-btn:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.15);
-    }
-    .legend-chip {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.73rem;
-      color: #cbd5e1;
-      cursor: pointer;
-      padding: 4px 10px;
-      border-radius: 14px;
-      transition: all 0.18s ease;
-      user-select: none;
-    }
-    .legend-chip:hover {
-      background: rgba(255, 255, 255, 0.14);
-      color: #fff;
-      transform: translateY(-2px);
-    }
-    .legend-dot {
-      width: 10px;
-      height: 10px;
-      min-width: 10px;
-      border-radius: 50%;
-      display: inline-block;
-      flex-shrink: 0;
-    }
+    
     .tax-name { flex: 1; }
     .tax-num {
       font-size: 0.72rem;
@@ -744,9 +676,6 @@
 
   <div id="main-container">
     <div id="3d-graph"></div>
-
-    <!-- PERSISTENT CHROMATIC GALAXY LEGEND -->
-    <div class="chromatic-galaxy-legend" id="chromatic-galaxy-legend"></div>
 
     <!-- SEMITRANSPARENT MINI-SPHERE ROTATION & SUBTLE ZOOM HUD -->
     <div class="mini-sphere-hud" id="mini-sphere-hud">
@@ -1449,16 +1378,6 @@
       }
     }
 
-    function toggleLegendBar(show) {
-      const bar = document.getElementById('chromatic-galaxy-legend');
-      if (!bar) return;
-      if (show === undefined) {
-        bar.style.display = bar.style.display === 'none' ? 'flex' : 'none';
-      } else {
-        bar.style.display = show ? 'flex' : 'none';
-      }
-    }
-
     function renderTaxonomyMenu(data) {
       const groupCounts = {};
       (data.nodes || []).forEach(n => {
@@ -1469,8 +1388,7 @@
 
       const menu = document.getElementById('taxonomy-menu');
       const countBadge = document.getElementById('tax-count');
-      const legendBar = document.getElementById('chromatic-galaxy-legend');
-
+      
       const groups = Object.keys(groupCounts);
       const activeCount = groups.filter(g => activeLayers[g]).length;
       if (countBadge) countBadge.innerText = activeCount + '/' + groups.length;
@@ -1481,8 +1399,7 @@
       '</div>' +
       '<div class="tax-divider"></div>';
 
-      let legendHtml = '';
-
+      
       groups.forEach(g => {
         const color = getGroupColor(g, data.nodes);
         const label = getGroupLabel(g);
@@ -1498,18 +1415,10 @@
           `<span class="layer-check ${isChecked ? 'checked' : ''}">${isChecked ? '✓' : ''}</span>` +
         `</div>`;
 
-        // Legend chip for top floating bar
-        legendHtml += `<div class="legend-chip" onclick="locateGroup('${g}', event)" title="Click para volar y enfocar ${label}">` +
-          `<span class="legend-dot" style="background: ${color}; box-shadow: 0 0 8px ${color};"></span>` +
-          `<span>${label}</span>` +
-          `<span style="color: ${color}; font-weight: 600; font-size: 0.68rem;">(${count})</span>` +
-        `</div>`;
+
       });
 
       if (menu) menu.innerHTML = menuHtml;
-      if (legendBar) {
-        legendBar.innerHTML = legendHtml + `<button class="legend-close-btn" onclick="toggleLegendBar(false)" title="Ocultar barra de leyenda">✕</button>`;
-      }
     }
 
     async function initGraph() {
