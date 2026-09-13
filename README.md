@@ -41,8 +41,16 @@ The **OKF 3D Galaxy Visualizer** transforms standard, text-based Markdown knowle
 - **🌌 3D Galaxy Orbital Mode (Default)**: Clustered stellar nebulae, celestial armillary rings, central galactic core, and curved 3D Bézier cosmic splines.
 - **🔮 3D Spherical Cortex Mode**: Distributes nodes along a Fibonacci spherical shell with surface synapse arcs for dense neural mapping.
 - **⚡ Universal OKF v0.2 Compatibility**: Parses YAML frontmatter, tags, category hierarchies, and Obsidian-style `[[wikilinks]]`.
-- **🎨 Dynamic HSL Chromatic Clustering**: Automatically groups concepts by category and distributes them across harmonious color spectra in 3D space.
-- **🔍 Real-Time Exploration HUD**: Instant search filter, category toggles, brightness control, and camera orbit navigation.
+- **🎨 Chromatic Categories & 🎯 1-Click Cluster Locator**: Categorical dropdown with glowing chromatic color dots, exact hex badges, count pills, layer toggles, and direct `🎯` cinematic fly-to target buttons.
+- **🎛️ Real-Time Glass HUD**:
+  - 🌟 **Star Brightness**: Scale ambient illumination and stellar glow.
+  - ⏱️ **Orbital Speed**: Regulate or freeze celestial orbital animation speed.
+  - 🪐 **Node Scale**: Dynamic sizing multiplier (0.5x to 2.0x) for custom visual density.
+  - 🕹️ **Cosmic Trackball**: 3D glass orb for omnidirectional rotational camera navigation.
+- **⌨️ Ergonomic Hotkeys**:
+  - `H`: Toggle UI visibility (HUD & top navbar) for clean presentation and screenshot captures.
+  - `O`: Toggle auto-rotation on/off.
+  - `ESC`: Clear active search filter and re-frame the galaxy.
 - **🚀 Zero-Database Architecture**: Reads standard `.md` files directly from disk in real time.
 
 ---
