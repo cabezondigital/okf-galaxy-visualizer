@@ -40,9 +40,9 @@ app.use(express.static(publicDir));
 app.use('/media', express.static(vaultPath));
 
 // API: Graph Data
-app.get(['/api/graph', '/api/okf-graph'], (req, res) => {
+app.get(['/api/graph', '/api/okf-graph'], async (req, res) => {
   try {
-    const data = parser.parseVault();
+    const data = await parser.parseVault();
     res.json(data);
   } catch (err: any) {
     console.error('❌ [API Error] Failed to parse vault:', err);
@@ -51,9 +51,9 @@ app.get(['/api/graph', '/api/okf-graph'], (req, res) => {
 });
 
 // API: Quick Stats
-app.get('/api/stats', (req, res) => {
+app.get('/api/stats', async (req, res) => {
   try {
-    const data = parser.parseVault();
+    const data = await parser.parseVault();
     res.json({
       vaultPath,
       ...data.stats

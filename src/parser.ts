@@ -98,25 +98,27 @@ export class OkfVaultParser {
       .replace(/^_+|_+$/g, '');
   }
 
-  public parseVault(): GraphData {
+  public async parseVault(): Promise<GraphData> {
     const nodes: GraphNode[] = [];
     const edges: GraphEdge[] = [];
     const nodeMap = new Map<string, GraphNode>();
     const clusters: Record<string, number> = {};
 
-    if (!fs.existsSync(this.vaultDir)) {
+    try {
+      await fs.promises.access(this.vaultDir);
+    } catch {
       console.warn(`⚠️ [OKF Parser] Vault directory not found: ${this.vaultDir}`);
       return { nodes: [], edges: [], stats: { totalNodes: 0, totalEdges: 0, clusters: {} } };
     }
 
     // 1. Discover subdirectories (clusters) or treat root as single cluster
-    const entries = fs.readdirSync(this.vaultDir, { withFileTypes: true });
+    const entries = await fs.promises.readdir(this.vaultDir, { withFileTypes: true });
     const subdirs = entries.filter(e => e.isDirectory() && !e.name.startsWith('.'));
 
     let colorIdx = 0;
 
     // Helper to process markdown files in a cluster
-    const processCluster = (clusterName: string, folderPath: string, isRootFolder = false) => {
+    const processCluster = async (clusterName: string, folderPath: string, isRootFolder = false) => {
       const lowerName = clusterName.toLowerCase();
       const clusterColor = CANONICAL_CLUSTER_COLORS[lowerName] || CLUSTER_PALETTE[colorIdx % CLUSTER_PALETTE.length];
       colorIdx++;
@@ -142,10 +144,12 @@ export class OkfVaultParser {
       nodeMap.set(rootId, rootNode);
       clusters[clusterName] = 0;
 
-      const mdFiles = fs.readdirSync(folderPath).filter(f => f.endsWith('.md'));
+      const files = await fs.promises.readdir(folderPath);
+      const mdFiles = files.filter(f => f.endsWith('.md'));
+      
       for (const file of mdFiles) {
         const fullPath = path.join(folderPath, file);
-        const rawContent = fs.readFileSync(fullPath, 'utf-8');
+        const rawContent = await fs.promises.readFile(fullPath, 'utf-8');
         const slug = file.replace('.md', '');
 
         // Extract title (# Title or frontmatter title)
@@ -205,16 +209,21 @@ export class OkfVaultParser {
 
     if (subdirs.length > 0) {
       for (const d of subdirs) {
-        processCluster(d.name, path.join(this.vaultDir, d.name));
+        await processCluster(d.name, path.join(this.vaultDir, d.name));
       }
     } else {
-      processCluster('knowledge', this.vaultDir, true);
+      await processCluster('knowledge', this.vaultDir, true);
     }
 
     // 2. Discover wikilinks edges [[target]] across all nodes
     for (const node of nodes) {
-      if (!node.filePath || !fs.existsSync(node.filePath)) continue;
-      const rawContent = fs.readFileSync(node.filePath, 'utf-8');
+      if (!node.filePath) continue;
+      let rawContent = '';
+      try {
+        rawContent = await fs.promises.readFile(node.filePath, 'utf-8');
+      } catch (e) {
+        continue;
+      }
       const wikilinks = Array.from(rawContent.matchAll(/\[\[(.*?)\]\]/g)).map(m => m[1].trim());
 
       for (const link of wikilinks) {
