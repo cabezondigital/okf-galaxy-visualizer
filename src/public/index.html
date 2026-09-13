@@ -250,30 +250,49 @@
       transform: scale(1.15);
     }
 
-    /* Bottom Chromatic Legend Bar */
-    .bottom-chromatic-legend {
+    /* Top Chromatic Legend Bar (Moved to top so bottom HUD is 100% free) */
+    .chromatic-galaxy-legend {
       position: absolute;
-      bottom: 78px;
+      top: 66px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
       align-items: center;
       gap: 8px;
-      background: rgba(6, 10, 20, 0.85);
+      background: rgba(6, 10, 20, 0.82);
       backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 30px;
-      padding: 6px 18px;
+      padding: 5px 12px 5px 16px;
       z-index: 25;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.75);
       pointer-events: auto;
       flex-wrap: wrap;
       justify-content: center;
-      max-width: 90vw;
+      max-width: 92vw;
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    body.hud-hidden .bottom-chromatic-legend {
+    body.hud-hidden .chromatic-galaxy-legend {
       display: none !important;
+    }
+    .legend-close-btn {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-left: 6px;
+      padding: 2px 6px;
+      border-radius: 50%;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .legend-close-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.15);
     }
     .legend-chip {
       display: flex;
@@ -727,7 +746,7 @@
     <div id="3d-graph"></div>
 
     <!-- PERSISTENT CHROMATIC GALAXY LEGEND -->
-    <div class="bottom-chromatic-legend" id="bottom-chromatic-legend"></div>
+    <div class="chromatic-galaxy-legend" id="chromatic-galaxy-legend"></div>
 
     <!-- SEMITRANSPARENT MINI-SPHERE ROTATION & SUBTLE ZOOM HUD -->
     <div class="mini-sphere-hud" id="mini-sphere-hud">
@@ -1430,6 +1449,16 @@
       }
     }
 
+    function toggleLegendBar(show) {
+      const bar = document.getElementById('chromatic-galaxy-legend');
+      if (!bar) return;
+      if (show === undefined) {
+        bar.style.display = bar.style.display === 'none' ? 'flex' : 'none';
+      } else {
+        bar.style.display = show ? 'flex' : 'none';
+      }
+    }
+
     function renderTaxonomyMenu(data) {
       const groupCounts = {};
       (data.nodes || []).forEach(n => {
@@ -1440,7 +1469,7 @@
 
       const menu = document.getElementById('taxonomy-menu');
       const countBadge = document.getElementById('tax-count');
-      const legendBar = document.getElementById('bottom-chromatic-legend');
+      const legendBar = document.getElementById('chromatic-galaxy-legend');
 
       const groups = Object.keys(groupCounts);
       const activeCount = groups.filter(g => activeLayers[g]).length;
@@ -1469,7 +1498,7 @@
           `<span class="layer-check ${isChecked ? 'checked' : ''}">${isChecked ? '✓' : ''}</span>` +
         `</div>`;
 
-        // Legend chip for bottom bar
+        // Legend chip for top floating bar
         legendHtml += `<div class="legend-chip" onclick="locateGroup('${g}', event)" title="Click para volar y enfocar ${label}">` +
           `<span class="legend-dot" style="background: ${color}; box-shadow: 0 0 8px ${color};"></span>` +
           `<span>${label}</span>` +
@@ -1478,7 +1507,9 @@
       });
 
       if (menu) menu.innerHTML = menuHtml;
-      if (legendBar) legendBar.innerHTML = legendHtml;
+      if (legendBar) {
+        legendBar.innerHTML = legendHtml + `<button class="legend-close-btn" onclick="toggleLegendBar(false)" title="Ocultar barra de leyenda">✕</button>`;
+      }
     }
 
     async function initGraph() {
