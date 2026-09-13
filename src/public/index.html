@@ -869,18 +869,31 @@
     let currentSphereRadius = 240;
     const SPHERE_RADIUS = 270;
 
-    // Centros de los 5 Sistemas Solares en el espacio 3D
+    // Centros de los 8 Sistemas Solares en el espacio 3D (Constelación Cósmica Equilibrada)
     const GALAXY_CLUSTERS = {
-      contacts: { x: 0, y: 140, z: 0 },
-      events: { x: 140, y: -25, z: 75 },
-      emails: { x: -140, y: -25, z: 75 },
-      photos: { x: 0, y: -40, z: -140 },
-      learnings: { x: 0, y: -130, z: 35 },
-      contact: { x: 0, y: 140, z: 0 },
-      event: { x: 140, y: -25, z: 75 },
-      email: { x: -140, y: -25, z: 75 },
-      photo: { x: 0, y: -40, z: -140 },
-      learning: { x: 0, y: -130, z: 35 }
+      contacts: { x: 0, y: 170, z: 0 },
+      contact: { x: 0, y: 170, z: 0 },
+
+      projects: { x: 130, y: 95, z: -80 },
+      project: { x: 130, y: 95, z: -80 },
+
+      tools: { x: -130, y: 95, z: -80 },
+      tool: { x: -130, y: 95, z: -80 },
+
+      emails: { x: -180, y: -15, z: 60 },
+      email: { x: -180, y: -15, z: 60 },
+
+      events: { x: 180, y: -15, z: 60 },
+      event: { x: 180, y: -15, z: 60 },
+
+      photos: { x: 0, y: -30, z: -175 },
+      photo: { x: 0, y: -30, z: -175 },
+
+      expenses: { x: 0, y: -70, z: 155 },
+      expense: { x: 0, y: -70, z: 155 },
+
+      learnings: { x: 0, y: -165, z: 20 },
+      learning: { x: 0, y: -165, z: 20 }
     };
 
     const SOLAR_ORBIT_RADII = [26, 38, 50, 62, 74, 86];
@@ -890,10 +903,12 @@
       const roots = nodes.filter(n => n.isRoot);
 
       roots.forEach((rn, idx) => {
-        const anchor = GALAXY_CLUSTERS[rn.group] || {
-          x: Math.cos(idx * 1.25) * 120,
-          y: Math.sin(idx * 1.25) * 60,
-          z: Math.sin(idx * 2.1) * 120
+        const anchor = GALAXY_CLUSTERS[rn.group] || 
+                       GALAXY_CLUSTERS[rn.group + 's'] || 
+                       (rn.group && rn.group.endsWith('s') ? GALAXY_CLUSTERS[rn.group.slice(0, -1)] : null) || {
+          x: Math.cos((idx + 1) * 1.25) * 160,
+          y: Math.sin((idx + 1) * 0.8) * 60,
+          z: Math.sin((idx + 1) * 1.5) * 160
         };
         rn.starTargetX = anchor.x;
         rn.starTargetY = anchor.y;
@@ -1747,7 +1762,10 @@
                   n.__stellarFlare.scale.set(24 * pulse, 24 * pulse, 1);
                 }
                 if (!n.__isDraggingRoot) {
-                  const center = GALAXY_CLUSTERS[n.group] || { x: 0, y: 0, z: 0 };
+                  const center = GALAXY_CLUSTERS[n.group] || 
+                                 GALAXY_CLUSTERS[n.group + 's'] || 
+                                 (n.group && n.group.endsWith('s') ? GALAXY_CLUSTERS[n.group.slice(0, -1)] : null) || 
+                                 { x: Math.cos((i + 1) * 1.25) * 160, y: Math.sin((i + 1) * 0.8) * 60, z: Math.sin((i + 1) * 1.5) * 160 };
                   n.x += (center.x - n.x) * 0.12;
                   n.y += (center.y - n.y) * 0.12;
                   n.z += (center.z - n.z) * 0.12;
