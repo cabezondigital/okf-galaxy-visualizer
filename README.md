@@ -19,10 +19,18 @@ The **OKF 3D Galaxy Visualizer** transforms standard, text-based Markdown knowle
 
 ---
 
-## 🔗 Specifications & Repositories
+## 🔗 Specifications & Ecosystem Architecture
 
 - **Core Standard**: Built for [Open Knowledge Format v0.2 (OKF 0.2)](https://github.com/OpenKnowledgeFormat/okf-spec). Note that you need your knowledge base structured according to the **OKF v0.2 specification** described below for full 3D clustering.
 - **Visualizer Repository**: [https://github.com/cabezondigital/okf-galaxy-visualizer](https://github.com/cabezondigital/okf-galaxy-visualizer)
+- **Core Brain & Spec Parser**: [https://github.com/cabezondigital/okf-brain](https://github.com/cabezondigital/okf-brain)
+
+### Global Architecture & Multi-Tier AI Mesh
+The 3D Galaxy acts as the visual cognition layer of an autonomous AI ecosystem, integrating WhatsApp executive agents, realtime telephony with Cartesia Sonic-3, and multi-tier Gemini fallback routing:
+
+<p align="center">
+  <img src="assets/architecture_ecosystem.svg" alt="Autonomous AI Ecosystem &amp; OKF 3D Galaxy Architecture" width="100%" style="border-radius: 10px; border: 1px solid #334155;" />
+</p>
 
 ---
 
