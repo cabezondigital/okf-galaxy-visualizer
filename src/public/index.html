@@ -1424,7 +1424,8 @@
     async function initGraph() {
       try {
         console.log('Fetching graph data...');
-        const res = await fetch('/api/okf-graph');
+        let res = await fetch('/api/okf-graph').catch(() => null);
+        if (!res || !res.ok) res = await fetch('/api/graph');
         const data = await res.json();
         graphData = data;
         console.log('Graph data received:', data.stats);
