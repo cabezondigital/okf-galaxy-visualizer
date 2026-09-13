@@ -896,20 +896,32 @@
       learning: { x: 0, y: -165, z: 20 }
     };
 
-    const SOLAR_ORBIT_RADII = [26, 38, 50, 62, 74, 86];
+        const SOLAR_ORBIT_RADII = [26, 38, 50, 62, 74, 86];
 
     function setupGalaxyParameters(nodes) {
       if (!nodes || !nodes.length) return;
       const roots = nodes.filter(n => n.isRoot);
+      const N = Math.max(roots.length, 1);
+
+      // Distribución celestial dinámica para N sistemas (escala automáticamente desde 3 hasta 50+ sistemas)
+      const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5 grados (Golden Spiral 3D)
+      const dynamicGalaxyRadius = Math.max(185, 125 + Math.sqrt(N) * 35);
 
       roots.forEach((rn, idx) => {
-        const anchor = GALAXY_CLUSTERS[rn.group] || 
-                       GALAXY_CLUSTERS[rn.group + 's'] || 
-                       (rn.group && rn.group.endsWith('s') ? GALAXY_CLUSTERS[rn.group.slice(0, -1)] : null) || {
-          x: Math.cos((idx + 1) * 1.25) * 160,
-          y: Math.sin((idx + 1) * 0.8) * 60,
-          z: Math.sin((idx + 1) * 1.5) * 160
-        };
+        let anchor = null;
+        if (N <= 8 && GALAXY_CLUSTERS[rn.group]) {
+          anchor = GALAXY_CLUSTERS[rn.group];
+        } else {
+          // Empaquetamiento armónico de Fibonacci en esfera 3D (máxima separación mutua sin solapes)
+          const y = 1 - (idx / Math.max(N - 1, 1)) * 2;
+          const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
+          const theta = goldenAngle * idx;
+          anchor = {
+            x: Math.cos(theta) * radiusAtY * dynamicGalaxyRadius,
+            y: y * (dynamicGalaxyRadius * 0.82),
+            z: Math.sin(theta) * radiusAtY * dynamicGalaxyRadius
+          };
+        }
         rn.starTargetX = anchor.x;
         rn.starTargetY = anchor.y;
         rn.starTargetZ = anchor.z;
@@ -922,32 +934,34 @@
         groupChildren[g].push(n);
       });
 
-      // Ángulos 3D de esfera armilar para los anillos (distribución verdaderamente esférica)
-      const RING_ANGLES = [
-        { rx: 0.08, rz: 0.05 },
-        { rx: 0.45, rz: -0.32 },
-        { rx: -0.42, rz: 0.48 },
-        { rx: 0.72, rz: 0.28 },
-        { rx: -0.62, rz: -0.44 },
-        { rx: 0.30, rz: 0.78 }
-      ];
+      window.__systemRingRadii = {};
 
-      // Distribuir planetas sobre los anillos orbitales concéntricos 3D de su Sol
+      // Distribuir planetas sobre anillos orbitales concéntricos Keplerianos que escalan según el volumen de nodos
       Object.entries(groupChildren).forEach(([grp, children]) => {
         const total = children.length;
+        // Si el sistema tiene muchos nodos/contestaciones (ej: 50, 100, 300), amplía dinámicamente los anillos
+        const numRings = Math.min(16, Math.max(5, Math.ceil(Math.sqrt(total) * 1.5)));
+        const maxR = Math.min(125, 68 + Math.sqrt(total) * 4.5);
+        const ringRadii = [];
+        for (let rIdx = 0; rIdx < numRings; rIdx++) {
+          ringRadii.push(24 + (rIdx / Math.max(numRings - 1, 1)) * (maxR - 24));
+        }
+        window.__systemRingRadii[grp] = ringRadii;
+
         children.forEach((child, i) => {
-          const ringIdx = i % SOLAR_ORBIT_RADII.length;
-          const r = SOLAR_ORBIT_RADII[ringIdx];
-          const angleCfg = RING_ANGLES[ringIdx] || { rx: 0, rz: 0 };
-          // Ángulo inicial escalonado para que nunca se alineen en línea recta
-          const baseAngle = (i / Math.max(total, 1)) * Math.PI * 2 + (ringIdx * 1.35) + (i * 0.4);
+          const ringIdx = i % ringRadii.length;
+          const r = ringRadii[ringIdx];
+          // Inclinaciones armilares tridimensionales variadas y estables
+          const rx = Math.sin(ringIdx * 1.15) * 0.72;
+          const rz = Math.cos(ringIdx * 1.35) * 0.65;
+          const baseAngle = (i / Math.max(total, 1)) * Math.PI * 2 + (ringIdx * 1.35) + (i * 0.35);
 
           child.solarOrbit = {
             radius: r,
-            rx: angleCfg.rx,
-            rz: angleCfg.rz,
+            rx: rx,
+            rz: rz,
             currentAngle: baseAngle,
-            orbitSpeed: 0.012 / Math.sqrt(r / 26) // Rotación continua Kepleriana fluida y perceptible
+            orbitSpeed: 0.012 / Math.sqrt(r / 24) // Tercera Ley de Kepler: órbitas interiores rotan más rápido
           };
         });
       });
@@ -1748,6 +1762,26 @@
           }
 
           if (currentMode === 'galaxy') {
+            // Repulsión Gravitatoria Inter-Estelar (Garantiza separación e impide colisión entre N sistemas)
+            if (cachedRootNodes && cachedRootNodes.length > 1) {
+              for (let a = 0; a < cachedRootNodes.length; a++) {
+                for (let b = a + 1; b < cachedRootNodes.length; b++) {
+                  const ra = cachedRootNodes[a];
+                  const rb = cachedRootNodes[b];
+                  const dx = ra.x - rb.x;
+                  const dy = ra.y - rb.y;
+                  const dz = ra.z - rb.z;
+                  const dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+                  const minSafeDist = 185;
+                  if (dist < minSafeDist) {
+                    const push = (minSafeDist - dist) * 0.06;
+                    const nx = dx / dist; const ny = dy / dist; const nz = dz / dist;
+                    if (!ra.__isDraggingRoot) { ra.x += nx * push; ra.y += ny * push; ra.z += nz * push; }
+                    if (!rb.__isDraggingRoot) { rb.x -= nx * push; rb.y -= ny * push; rb.z -= nz * push; }
+                  }
+                }
+              }
+            }
             // ==========================================
             // 🌌 3D GALAXY: SISTEMAS SOLARES (SOL, ÓRBITAS Y PLANETAS)
             // ==========================================
@@ -1762,10 +1796,12 @@
                   n.__stellarFlare.scale.set(24 * pulse, 24 * pulse, 1);
                 }
                 if (!n.__isDraggingRoot) {
-                  const center = GALAXY_CLUSTERS[n.group] || 
-                                 GALAXY_CLUSTERS[n.group + 's'] || 
-                                 (n.group && n.group.endsWith('s') ? GALAXY_CLUSTERS[n.group.slice(0, -1)] : null) || 
-                                 { x: Math.cos((i + 1) * 1.25) * 160, y: Math.sin((i + 1) * 0.8) * 60, z: Math.sin((i + 1) * 1.5) * 160 };
+                  const center = (n.starTargetX !== undefined && n.starTargetY !== undefined && n.starTargetZ !== undefined)
+                    ? { x: n.starTargetX, y: n.starTargetY, z: n.starTargetZ }
+                    : (GALAXY_CLUSTERS[n.group] || 
+                       GALAXY_CLUSTERS[n.group + 's'] || 
+                       (n.group && n.group.endsWith('s') ? GALAXY_CLUSTERS[n.group.slice(0, -1)] : null) || 
+                       { x: Math.cos((i + 1) * 1.25) * 160, y: Math.sin((i + 1) * 0.8) * 60, z: Math.sin((i + 1) * 1.5) * 160 });
                   n.x += (center.x - n.x) * 0.12;
                   n.y += (center.y - n.y) * 0.12;
                   n.z += (center.z - n.z) * 0.12;
@@ -1895,7 +1931,7 @@
         const starsMat = new THREE.PointsMaterial({ color: 0x475569, size: 1.2, transparent: true, opacity: 0.35 });
         scene.add(new THREE.Points(starsGeo, starsMat));
 
-        // Anillos orbitales de alambre 3D (Armillary Wireframe Spheres per Solar System)
+                // Anillos orbitales de alambre 3D (Armillary Wireframe Spheres per Solar System)
         const galaxyOrbitsMasterGroup = new THREE.Group();
         window.__galaxyOrbitsMasterGroup = galaxyOrbitsMasterGroup;
         const clusterOrbitGroups = {};
@@ -1911,7 +1947,9 @@
             try { hexColor = parseInt(rn.color.replace('#', '0x'), 16); } catch(e){}
           }
 
-          SOLAR_ORBIT_RADII.forEach((r, idx) => {
+          const radii = (window.__systemRingRadii && (window.__systemRingRadii[rn.group] || window.__systemRingRadii[rn.id])) || SOLAR_ORBIT_RADII;
+
+          radii.forEach((r, idx) => {
             const pts = [];
             const segments = 64;
             for (let s = 0; s <= segments; s++) {
@@ -1926,17 +1964,8 @@
               blending: THREE.AdditiveBlending
             });
             const ringLine = new THREE.LineLoop(ringGeo, ringMat);
-            const RING_ANGLES = [
-              { rx: 0.08, rz: 0.05 },
-              { rx: 0.45, rz: -0.32 },
-              { rx: -0.42, rz: 0.48 },
-              { rx: 0.72, rz: 0.28 },
-              { rx: -0.62, rz: -0.44 },
-              { rx: 0.30, rz: 0.78 }
-            ];
-            const cfg = RING_ANGLES[idx] || { rx: 0, rz: 0 };
-            ringLine.rotation.x = cfg.rx;
-            ringLine.rotation.z = cfg.rz;
+            ringLine.rotation.x = Math.sin(idx * 1.15) * 0.72;
+            ringLine.rotation.z = Math.cos(idx * 1.35) * 0.65;
             grpHolder.add(ringLine);
           });
 
@@ -1944,7 +1973,6 @@
           clusterOrbitGroups[rn.id] = grpHolder;
           galaxyOrbitsMasterGroup.add(grpHolder);
         });
-
         galaxyOrbitsMasterGroup.visible = (currentMode === 'galaxy');
         scene.add(galaxyOrbitsMasterGroup);
 
