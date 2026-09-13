@@ -46,11 +46,27 @@ const CANONICAL_CLUSTER_COLORS: Record<string, string> = {
   photo: '#f43f5e',
   learnings: '#10b981',
   learning: '#10b981',
+  projects: '#6366f1',
+  project: '#6366f1',
+  tools: '#06b6d4',
+  tool: '#06b6d4',
+  expenses: '#eab308',
+  expense: '#eab308',
   concepts: '#38bdf8',
-  projects: '#fbbf24',
+  concept: '#38bdf8',
   architecture: '#c084fc',
   research: '#f43f5e',
-  tools: '#10b981',
+};
+
+const CLUSTER_DISPLAY_LABELS: Record<string, string> = {
+  contacts: 'CONTACTOS VIP',
+  events: 'EVENTOS Y AGENDA',
+  emails: 'CORREOS INDEXADOS',
+  photos: 'LOOKS Y ESTILISMO',
+  learnings: 'OKF APRENDIZAJES',
+  projects: 'PROYECTOS ESTRATÉGICOS',
+  tools: 'HERRAMIENTAS (TOOLS)',
+  expenses: 'GASTOS Y FACTURAS',
 };
 
 const CLUSTER_PALETTE = [
@@ -106,7 +122,8 @@ export class OkfVaultParser {
       colorIdx++;
 
       const rootId = `root_${this.slugify(clusterName)}`;
-      const rootLabel = `🌟 ${clusterName.toUpperCase()}`;
+      const displayTitle = CLUSTER_DISPLAY_LABELS[lowerName] || clusterName.toUpperCase();
+      const rootLabel = `🌟 ${displayTitle}`;
 
       // Create Gravity Center / Root Node for the cluster
       const rootNode: GraphNode = {

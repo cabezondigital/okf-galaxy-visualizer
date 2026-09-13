@@ -1313,44 +1313,46 @@
       document.getElementById("stat-total-edges").innerText = filteredLinks.length;
     }
 
-    // Dynamic Category Colors and Labels Resolution
+    // Canonical Category Colors and Labels - Single Source of Truth
+    const CANON_GROUP_COLORS = {
+      contacts: '#fbbf24',
+      contact: '#fbbf24',
+      events: '#38bdf8',
+      event: '#38bdf8',
+      emails: '#c084fc',
+      email: '#c084fc',
+      photos: '#f43f5e',
+      photo: '#f43f5e',
+      learnings: '#10b981',
+      learning: '#10b981',
+      projects: '#6366f1',
+      project: '#6366f1',
+      tools: '#06b6d4',
+      tool: '#06b6d4',
+      expenses: '#eab308',
+      expense: '#eab308',
+      concepts: '#38bdf8',
+      concept: '#38bdf8',
+      architecture: '#c084fc',
+      research: '#f43f5e',
+      venue: '#06b6d4',
+      entity: '#fbbf24',
+      otros: '#94a3b8'
+    };
+
     function getGroupColor(g, nodes) {
       const lowerG = (g || '').toLowerCase();
-      // 1. Check root node color
+      // 1. Prioridad absoluta a la paleta canónica para que categorías y nodos coincidan siempre al 100%
+      if (CANON_GROUP_COLORS[lowerG]) return CANON_GROUP_COLORS[lowerG];
+
+      // 2. Check root node color si fue definido dinámicamente
       const rootNode = (nodes || []).find(n => n.id === `root_${lowerG}` || n.id === `root_${g}`);
       if (rootNode && rootNode.color) return rootNode.color;
 
-      // 2. Check member node color
       const member = (nodes || []).find(n => (n.group || '').toLowerCase() === lowerG && n.color);
       if (member && member.color) return member.color;
 
-      // 3. Curated chromatic palette
-      const canon = {
-        contacts: '#fbbf24',
-        contact: '#fbbf24',
-        events: '#38bdf8',
-        event: '#38bdf8',
-        emails: '#c084fc',
-        email: '#c084fc',
-        photos: '#f43f5e',
-        photo: '#f43f5e',
-        learnings: '#10b981',
-        learning: '#10b981',
-        projects: '#6366f1',
-        project: '#6366f1',
-        tools: '#06b6d4',
-        tool: '#06b6d4',
-        expenses: '#eab308',
-        expense: '#eab308',
-        concepts: '#38bdf8',
-        concept: '#38bdf8',
-        architecture: '#c084fc',
-        research: '#f43f5e',
-        venue: '#06b6d4',
-        entity: '#fbbf24',
-        otros: '#94a3b8'
-      };
-      return canon[lowerG] || '#38bdf8';
+      return '#38bdf8';
     }
 
     function getGroupLabel(g) {
@@ -1516,7 +1518,7 @@
           .backgroundColor('#000000')
           .nodeId('id')
           .nodeColor(node => {
-            const baseColor = colorMap[node.group] || node.color || '#38bdf8';
+            const baseColor = getGroupColor(node.group, graphData ? graphData.nodes : []);
             if (!searchActive) return baseColor;
             if (node.__searchMatch) return '#ffffff'; // Destello blanco incandescente para coincidencias
             if (node.__searchConnected) return baseColor; // Conexiones en su color normal
@@ -1524,7 +1526,7 @@
           })
           .nodeThreeObject(node => {
             const group = new THREE.Group();
-            const nodeColor = colorMap[node.group] || node.color || '#38bdf8';
+            const nodeColor = getGroupColor(node.group, graphData ? graphData.nodes : []);
             const isRoot = !!node.isRoot;
             const degree = nodeDegreeMap.get(node.id) || 1;
 
@@ -1577,8 +1579,10 @@
               node.__stellarFlare = flareSprite;
               group.add(flareSprite);
 
-              // 5. Etiqueta del Sol
-              const rootSprite = createRootLabelSprite(node.label, nodeColor);
+              // 5. Etiqueta del Sol (Garantiza correspondencia con el nombre en Categorías)
+              const groupLabelClean = getGroupLabel(node.group || node.id.replace('root_', ''));
+              const sunLabelText = `🌟 ${groupLabelClean.toUpperCase()}`;
+              const rootSprite = createRootLabelSprite(sunLabelText, nodeColor);
               rootSprite.position.set(0, 5.2, 0);
               node.__labelSprite = rootSprite;
               group.add(rootSprite);
@@ -2338,10 +2342,12 @@
     function openDrawer(node) {
       const drawer = document.getElementById('drawer');
       const tagEl = document.getElementById('drawer-group');
-      tagEl.innerText = node.group;
-      tagEl.style.backgroundColor = node.color + '22';
-      tagEl.style.color = node.color;
-      tagEl.style.border = '1px solid ' + node.color;
+      const gColor = getGroupColor(node.group, graphData ? graphData.nodes : []);
+      const gLabel = getGroupLabel(node.group);
+      tagEl.innerText = gLabel;
+      tagEl.style.backgroundColor = gColor + '22';
+      tagEl.style.color = gColor;
+      tagEl.style.border = '1px solid ' + gColor;
 
       document.getElementById('drawer-title').innerText = node.label;
       
