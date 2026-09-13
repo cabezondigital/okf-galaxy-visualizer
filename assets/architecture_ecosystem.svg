@@ -1,22 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1850 1220" width="100%" height="100%" style="background:#f8fafc; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1620" width="100%" height="100%" style="background:#f8fafc; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   <defs>
     <!-- Background Gradient Light Mode -->
-    <linearGradient id="bgGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#f8fafc"/>
-      <stop offset="50%" stop-color="#f1f5f9"/>
+      <stop offset="60%" stop-color="#f1f5f9"/>
       <stop offset="100%" stop-color="#e2e8f0"/>
     </linearGradient>
 
-    <!-- Card Shadow Filter -->
-    <filter id="cardShadow" x="-4%" y="-4%" width="108%" height="108%" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.06"/>
+    <!-- Soft Diffused Card Shadows -->
+    <filter id="cardShadow" x="-3%" y="-3%" width="106%" height="108%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.05"/>
     </filter>
 
-    <filter id="subcardShadow" x="-2%" y="-2%" width="104%" height="104%" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.04"/>
+    <filter id="subcardShadow" x="-2%" y="-2%" width="104%" height="106%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.04"/>
     </filter>
 
-    <!-- Arrow Markers (Light Theme: Vibrant, crisp contrast) -->
+    <!-- Arrow Markers -->
     <marker id="arrOrange" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c"/>
     </marker>
@@ -38,531 +38,606 @@
   </defs>
 
   <!-- Background Base -->
-  <rect width="1850" height="1220" fill="url(#bgGradLight)"/>
+  <rect width="2400" height="1620" fill="url(#bgGrad)"/>
   
-  <!-- Subtle Architectural Grid Lines -->
-  <g opacity="0.4" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4">
-    <line x1="150" y1="0" x2="150" y2="1220"/><line x1="450" y1="0" x2="450" y2="1220"/>
-    <line x1="750" y1="0" x2="750" y2="1220"/><line x1="1050" y1="0" x2="1050" y2="1220"/>
-    <line x1="1350" y1="0" x2="1350" y2="1220"/><line x1="1650" y1="0" x2="1650" y2="1220"/>
-    <line x1="0" y1="150" x2="1850" y2="150"/><line x1="0" y1="450" x2="1850" y2="450"/>
-    <line x1="0" y1="750" x2="1850" y2="750"/><line x1="0" y1="1050" x2="1850" y2="1050"/>
+  <!-- Architectural Subtle Grid -->
+  <g opacity="0.35" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="6 6">
+    <line x1="80" y1="0" x2="80" y2="1620"/><line x1="480" y1="0" x2="480" y2="1620"/>
+    <line x1="865" y1="0" x2="865" y2="1620"/><line x1="1575" y1="0" x2="1575" y2="1620"/>
+    <line x1="2320" y1="0" x2="2320" y2="1620"/>
+    <line x1="0" y1="125" x2="2400" y2="125"/><line x1="0" y1="1060" x2="2400" y2="1060"/>
   </g>
 
-  <!-- ==================== HEADER (LIGHT THEME) ==================== -->
-  <g id="header" transform="translate(60, 35)">
-    <text x="0" y="28" fill="#0f172a" font-size="24" font-weight="800" letter-spacing="-0.5">
+  <!-- ==================== HEADER ==================== -->
+  <g id="header" transform="translate(80, 45)">
+    <text x="0" y="32" fill="#0f172a" font-size="28" font-weight="800" letter-spacing="-0.5">
       ASSISTANT AI &amp; OKF ECOSYSTEM ARCHITECTURE
     </text>
-    <text x="0" y="50" fill="#475569" font-size="13" font-weight="500">
-      Global Communication Protocols, Multi-Tier AI Models, Fallback Routing, Security Perimeter &amp; Data Flows
+    <text x="0" y="58" fill="#64748b" font-size="14" font-weight="500">
+      Executive Protocol Interfaces, Multi-Tier AI Models, Security Perimeter &amp; Bi-directional Data Flows
     </text>
 
-    <!-- Protocol Legend Badges (Light Themed) -->
-    <g transform="translate(980, 5)">
-      <!-- Webhook -->
-      <rect x="0" y="0" width="115" height="28" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.2"/>
-      <text x="10" y="18" fill="#c2410c" font-size="10" font-weight="700">⚡ WEBHOOK</text>
+    <!-- Protocol Legend Badges -->
+    <g transform="translate(1380, 10)">
+      <rect x="0" y="0" width="130" height="32" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.3"/>
+      <text x="14" y="21" fill="#c2410c" font-size="11" font-weight="800">⚡ WEBHOOK</text>
 
-      <!-- REST -->
-      <rect x="125" y="0" width="115" height="28" rx="6" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.2"/>
-      <text x="135" y="18" fill="#0369a1" font-size="10" font-weight="700">🌐 REST API</text>
+      <rect x="145" y="0" width="130" height="32" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.3"/>
+      <text x="160" y="21" fill="#0369a1" font-size="11" font-weight="800">🌐 REST API</text>
 
-      <!-- AI SDK -->
-      <rect x="250" y="0" width="115" height="28" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.2"/>
-      <text x="260" y="18" fill="#6d28d9" font-size="10" font-weight="700">🧠 AI SDK</text>
+      <rect x="290" y="0" width="130" height="32" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.3"/>
+      <text x="306" y="21" fill="#6d28d9" font-size="11" font-weight="800">🧠 AI SDK</text>
 
-      <!-- MCP -->
-      <rect x="375" y="0" width="125" height="28" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
-      <text x="385" y="18" fill="#047857" font-size="10" font-weight="700">🔌 MCP SERVER</text>
+      <rect x="435" y="0" width="145" height="32" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+      <text x="448" y="21" fill="#047857" font-size="11" font-weight="800">🔌 MCP SERVER</text>
 
-      <!-- OAuth2 -->
-      <rect x="510" y="0" width="115" height="28" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
-      <text x="520" y="18" fill="#1d4ed8" font-size="10" font-weight="700">🔑 OAUTH2 API</text>
+      <rect x="595" y="0" width="135" height="32" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.3"/>
+      <text x="608" y="21" fill="#1d4ed8" font-size="11" font-weight="800">🔑 OAUTH2 API</text>
 
-      <!-- Local FS -->
-      <rect x="635" y="0" width="125" height="28" rx="6" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.2"/>
-      <text x="645" y="18" fill="#0f766e" font-size="10" font-weight="700">📁 LOCAL HTTP/FS</text>
+      <rect x="745" y="0" width="145" height="32" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.3"/>
+      <text x="756" y="21" fill="#0f766e" font-size="11" font-weight="800">📁 LOCAL HTTP/FS</text>
     </g>
   </g>
 
-  <!-- ==================== COLUMN 1: AUTHORIZED CLIENTS (LIGHT THEME) ==================== -->
-  <g id="col_users" transform="translate(60, 105)">
-    <rect width="260" height="705" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
-    <rect x="0" y="0" width="260" height="44" rx="14" fill="#f1f5f9"/>
-    <line x1="0" y1="44" x2="260" y2="44" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="20" y="28" fill="#0f172a" font-size="12" font-weight="800" letter-spacing="0.5">1. AUTHORIZED CHANNELS</text>
+  <!-- ==================== COLUMN 1: AUTHORIZED CHANNELS ==================== -->
+  <g id="col_users" transform="translate(80, 130)">
+    <rect width="375" height="910" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <rect x="0" y="0" width="375" height="52" rx="16" fill="#f1f5f9"/>
+    <line x1="0" y1="52" x2="375" y2="52" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="24" y="33" fill="#0f172a" font-size="14" font-weight="800" letter-spacing="0.5">1. AUTHORIZED CHANNELS &amp; CLIENTS</text>
 
     <!-- Primary Executive User -->
-    <g transform="translate(14, 56)">
-      <rect width="232" height="300" rx="10" fill="#ffffff" stroke="#f43f5e" stroke-width="1.4" filter="url(#subcardShadow)"/>
-      <rect x="0" y="0" width="232" height="46" rx="10" fill="#fff1f2"/>
-      <circle cx="24" cy="23" r="12" fill="#ffe4e6"/>
-      <text x="17" y="28" fill="#e11d48" font-size="14">👑</text>
-      <text x="46" y="21" fill="#9f1239" font-size="12" font-weight="800">Primary Executive User</text>
-      <text x="46" y="36" fill="#e11d48" font-size="10" font-weight="600">+34 695 14 08 90 (VIP Whitelisted)</text>
+    <g transform="translate(18, 70)">
+      <rect width="339" height="385" rx="12" fill="#ffffff" stroke="#f43f5e" stroke-width="1.4" filter="url(#subcardShadow)"/>
+      <rect x="0" y="0" width="339" height="56" rx="12" fill="#fff1f2"/>
+      <circle cx="32" cy="28" r="16" fill="#ffe4e6"/>
+      <text x="23" y="35" fill="#e11d48" font-size="18">👑</text>
+      <text x="60" y="26" fill="#9f1239" font-size="14" font-weight="800">Primary Executive User</text>
+      <text x="60" y="44" fill="#e11d48" font-size="11.5" font-weight="600">+34 695 14 08 90 (VIP Whitelisted)</text>
 
-      <line x1="12" y1="52" x2="220" y2="52" stroke="#fecdd3"/>
-      <text x="12" y="70" fill="#881337" font-size="11" font-weight="700">Enabled Capabilities &amp; Tools:</text>
-      <text x="12" y="88" fill="#334155" font-size="9.5">• 📸 Wardrobe Vision &amp; AI Stylist</text>
-      <text x="12" y="105" fill="#334155" font-size="9.5">• 🧾 Invoice &amp; Expense OCR Parsing</text>
-      <text x="12" y="122" fill="#334155" font-size="9.5">• 🎙️ Voice-for-Voice Audio Dialog</text>
-      <text x="12" y="139" fill="#334155" font-size="9.5">• 📞 Autonomous Call Missions</text>
-      <text x="12" y="156" fill="#334155" font-size="9.5">• 📑 Travel Dossiers &amp; VIP Weather</text>
-      <text x="12" y="173" fill="#334155" font-size="9.5">• 📊 Executive PDF Briefings</text>
-      <text x="12" y="190" fill="#334155" font-size="9.5">• ✉️ Gmail Drafts &amp; Sorting</text>
-      <text x="12" y="207" fill="#334155" font-size="9.5">• 📋 Task Extraction &amp; Meeting Minutes</text>
+      <line x1="16" y1="68" x2="323" y2="68" stroke="#fecdd3"/>
+      <text x="16" y="90" fill="#881337" font-size="12" font-weight="700">Enabled Capabilities &amp; Tools:</text>
+      
+      <g fill="#334155" font-size="11">
+        <text x="16" y="112">• 📸 Wardrobe Vision &amp; AI Stylist Retouching</text>
+        <text x="16" y="132">• 🧾 Invoice &amp; Expense OCR Ledger Parsing</text>
+        <text x="16" y="152">• 🎙️ Voice-for-Voice Audio Dialog (Luzia Voice)</text>
+        <text x="16" y="172">• 📞 Autonomous Phone Call Missions</text>
+        <text x="16" y="192">• 📑 Curated Travel Dossiers &amp; VIP Weather</text>
+        <text x="16" y="212">• 📊 Executive PDF Briefings &amp; Slide Decks</text>
+        <text x="16" y="232">• ✉️ Gmail Priority Drafts &amp; Sorting</text>
+        <text x="16" y="252">• 📋 Structured Tasks &amp; Meeting Minutes</text>
+      </g>
 
-      <!-- Strict Phone Security Vault Badge -->
-      <rect x="10" y="226" width="212" height="62" rx="6" fill="#fff1f2" stroke="#fb7185" stroke-width="1"/>
-      <text x="16" y="243" fill="#9f1239" font-size="10" font-weight="800">🔒 Strict Phone ID Authentication</text>
-      <text x="16" y="258" fill="#475569" font-size="8.8">Phone number acts as cryptographic token.</text>
-      <text x="16" y="270" fill="#475569" font-size="8.8">Zero cross-data leaks between numbers.</text>
-      <text x="16" y="282" fill="#b91c1c" font-size="8.8" font-weight="600">Secret requests escalate to Admin.</text>
+      <!-- Security Vault Policy -->
+      <rect x="14" y="272" width="311" height="96" rx="8" fill="#fff1f2" stroke="#fb7185" stroke-width="1.2"/>
+      <text x="24" y="295" fill="#9f1239" font-size="11.5" font-weight="800">🔒 Strict Phone ID Identity Vault</text>
+      <text x="24" y="315" fill="#475569" font-size="10.5">• Verified phone number acts as cryptographic token.</text>
+      <text x="24" y="333" fill="#475569" font-size="10.5">• Zero data crossing between contact profiles.</text>
+      <text x="24" y="351" fill="#b91c1c" font-size="10.5" font-weight="700">• Credential access requests escalate to Admin.</text>
     </g>
 
-    <!-- Administrator / Engineer -->
-    <g transform="translate(14, 370)">
-      <rect width="232" height="320" rx="10" fill="#ffffff" stroke="#0284c7" stroke-width="1.4" filter="url(#subcardShadow)"/>
-      <rect x="0" y="0" width="232" height="46" rx="10" fill="#f0f9ff"/>
-      <circle cx="24" cy="23" r="12" fill="#e0f2fe"/>
-      <text x="17" y="28" fill="#0284c7" font-size="13">🛠️</text>
-      <text x="46" y="21" fill="#075985" font-size="12" font-weight="800">System Admin / Engineer</text>
-      <text x="46" y="36" fill="#0284c7" font-size="10" font-weight="600">+34 664 45 88 09 (Full Access)</text>
+    <!-- System Admin / Engineer -->
+    <g transform="translate(18, 475)">
+      <rect width="339" height="415" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="1.4" filter="url(#subcardShadow)"/>
+      <rect x="0" y="0" width="339" height="56" rx="12" fill="#f0f9ff"/>
+      <circle cx="32" cy="28" r="16" fill="#e0f2fe"/>
+      <text x="23" y="35" fill="#0284c7" font-size="17">🛠️</text>
+      <text x="60" y="26" fill="#075985" font-size="14" font-weight="800">System Admin / Engineer</text>
+      <text x="60" y="44" fill="#0284c7" font-size="11.5" font-weight="600">+34 664 45 88 09 (Engineering Lead)</text>
 
-      <line x1="12" y1="52" x2="220" y2="52" stroke="#bae6fd"/>
-      <text x="12" y="70" fill="#0369a1" font-size="11" font-weight="700">Administrative Capabilities:</text>
-      <text x="12" y="88" fill="#334155" font-size="9.5">• 📞 Voice Call Mission Dispatcher</text>
-      <text x="12" y="105" fill="#334155" font-size="9.5">• 📇 OKF Contact Ledger &amp; Registration</text>
-      <text x="12" y="122" fill="#334155" font-size="9.5">• 📊 Live Telemetry &amp; Status Logs</text>
-      <text x="12" y="139" fill="#334155" font-size="9.5">• ✉️ Secure Outbound Messaging</text>
-      <text x="12" y="156" fill="#334155" font-size="9.5">• 🔐 Unrestricted Credential Vault</text>
-      <text x="12" y="173" fill="#334155" font-size="9.5">• 🧠 Forced OKF Vault Consolidation</text>
+      <line x1="16" y1="68" x2="323" y2="68" stroke="#bae6fd"/>
+      <text x="16" y="90" fill="#0369a1" font-size="12" font-weight="700">Administrative Capabilities:</text>
+      
+      <g fill="#334155" font-size="11">
+        <text x="16" y="112">• 📞 Voice Call Mission Dispatcher &amp; Guardrails</text>
+        <text x="16" y="132">• 📇 OKF Contact Ledger &amp; VIP Registration</text>
+        <text x="16" y="152">• 📊 Live Telemetry, Error Traces &amp; Call Logs</text>
+        <text x="16" y="172">• ✉️ Secure Bridge Outbound Messaging</text>
+        <text x="16" y="192">• 🔐 Unrestricted Credential &amp; Token Access</text>
+        <text x="16" y="212">• 🧠 Forced OKF Vault Consolidation Runs</text>
+      </g>
 
-      <!-- Admin WhatsApp Channel -->
-      <rect x="10" y="195" width="212" height="110" rx="6" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="1"/>
-      <text x="16" y="213" fill="#0369a1" font-size="10" font-weight="800">📱 Dedicated WhatsApp Channel</text>
-      <text x="16" y="230" fill="#334155" font-size="9">• Ingress Payload: JSON (Meta / Twilio)</text>
-      <text x="16" y="246" fill="#334155" font-size="9">• Transcription: Gemini 3.1-Lite (&lt;0.8s)</text>
-      <text x="16" y="262" fill="#334155" font-size="9">• Output: Audio Opus / Clean Markdown</text>
-      <text x="16" y="278" fill="#334155" font-size="9">• Real-time call telemetries &amp; briefings</text>
-      <text x="16" y="294" fill="#0284c7" font-size="9" font-weight="600">• Direct System Heartbeat Monitor</text>
+      <!-- Dedicated Admin WhatsApp Bridge -->
+      <rect x="14" y="235" width="311" height="160" rx="8" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="1.2"/>
+      <text x="24" y="258" fill="#0369a1" font-size="11.5" font-weight="800">📱 Dedicated Admin WhatsApp Bridge</text>
+      <g fill="#334155" font-size="10.5">
+        <text x="24" y="278">• Ingress Payload: JSON via Meta / Twilio Webhook</text>
+        <text x="24" y="297">• Speech Transcription: Gemini 3.1-Lite (&lt; 0.8s)</text>
+        <text x="24" y="316">• Output Formats: Spoken Audio Opus &amp; Markdown</text>
+        <text x="24" y="335">• Real-time call telemetries &amp; immediate alerts</text>
+        <text x="24" y="354">• Direct server diagnostics &amp; heartbeat status</text>
+        <text x="24" y="375" fill="#0284c7" font-weight="700">Continuous 24/7 background supervisor</text>
+      </g>
     </g>
   </g>
 
-  <!-- ==================== COLUMN 2: INGRESS GATEWAYS (LIGHT THEME) ==================== -->
-  <g id="col_gateway" transform="translate(355, 105)">
-    <rect width="255" height="705" rx="14" fill="#ffffff" stroke="#ea580c" stroke-width="1.5" filter="url(#cardShadow)"/>
-    <rect x="0" y="0" width="255" height="44" rx="14" fill="#fff7ed"/>
-    <line x1="0" y1="44" x2="255" y2="44" stroke="#fed7aa" stroke-width="1"/>
-    <text x="20" y="28" fill="#9a3412" font-size="12" font-weight="800" letter-spacing="0.5">2. INGRESS GATEWAYS &amp; WEBHOOKS</text>
+  <!-- ==================== COLUMN 2: INGRESS GATEWAYS ==================== -->
+  <g id="col_gateway" transform="translate(485, 130)">
+    <rect width="355" height="910" rx="16" fill="#ffffff" stroke="#ea580c" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <rect x="0" y="0" width="355" height="52" rx="16" fill="#fff7ed"/>
+    <line x1="0" y1="52" x2="355" y2="52" stroke="#fed7aa" stroke-width="1"/>
+    <text x="24" y="33" fill="#9a3412" font-size="14" font-weight="800" letter-spacing="0.5">2. INGRESS &amp; WEBHOOK GATEWAYS</text>
 
     <!-- Meta WhatsApp Webhook Receiver -->
-    <g transform="translate(14, 56)">
-      <rect width="227" height="145" rx="8" fill="#ffffff" stroke="#ea580c" stroke-width="1.2" filter="url(#subcardShadow)"/>
-      <rect x="10" y="10" width="85" height="20" rx="4" fill="#fff7ed" stroke="#fdba74" stroke-width="1"/>
-      <text x="15" y="24" fill="#c2410c" font-size="9" font-weight="800">⚡ WEBHOOK</text>
-      <text x="105" y="24" fill="#0f172a" font-size="11" font-weight="800">Meta WhatsApp</text>
-      
-      <rect x="10" y="38" width="207" height="20" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="16" y="52" fill="#c2410c" font-size="9.5" font-family="monospace" font-weight="700">POST /webhook/whatsapp</text>
-      
-      <text x="10" y="76" fill="#475569" font-size="9.5" font-weight="700">Ingress Payload Attributes:</text>
-      <text x="10" y="92" fill="#64748b" font-size="9">• from: "34695140890" (strictly verified)</text>
-      <text x="10" y="108" fill="#64748b" font-size="9">• type: "text" | "audio" | "image"</text>
-      <text x="10" y="124" fill="#64748b" font-size="9">• id: media_id (authenticated fetch)</text>
-      <text x="10" y="139" fill="#16a34a" font-size="9" font-weight="700">SLA: Immediate HTTP 200 OK Response</text>
+    <g transform="translate(18, 70)">
+      <rect width="319" height="185" rx="10" fill="#ffffff" stroke="#ea580c" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <rect x="12" y="12" width="95" height="24" rx="5" fill="#fff7ed" stroke="#fdba74" stroke-width="1"/>
+      <text x="18" y="28" fill="#c2410c" font-size="10" font-weight="800">⚡ WEBHOOK</text>
+      <text x="118" y="29" fill="#0f172a" font-size="13" font-weight="800">Meta WhatsApp Ingress</text>
+
+      <rect x="12" y="44" width="295" height="26" rx="5" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="20" y="61" fill="#c2410c" font-size="11" font-family="monospace" font-weight="700">POST /webhook/whatsapp</text>
+
+      <text x="12" y="92" fill="#475569" font-size="11" font-weight="700">Verified Payload Fields:</text>
+      <g fill="#64748b" font-size="10.5">
+        <text x="12" y="111">• from: "34695140890" (strictly authenticated)</text>
+        <text x="12" y="129">• type: "text" | "audio" | "image" | "document"</text>
+        <text x="12" y="147">• media_id: Direct binary fetch identifier</text>
+      </g>
+      <rect x="12" y="156" width="295" height="20" rx="4" fill="#f0fdf4"/>
+      <text x="18" y="170" fill="#15803d" font-size="10.5" font-weight="700">SLA: Instant HTTP 200 OK Acknowledgement</text>
     </g>
 
     <!-- Ngrok Reverse Proxy Tunnel -->
-    <g transform="translate(14, 215)">
-      <rect width="227" height="115" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.2" filter="url(#subcardShadow)"/>
-      <rect x="10" y="10" width="105" height="20" rx="4" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="1"/>
-      <text x="15" y="24" fill="#0369a1" font-size="9" font-weight="800">🌐 NGROK INGRESS</text>
+    <g transform="translate(18, 275)">
+      <rect width="319" height="150" rx="10" fill="#ffffff" stroke="#0284c7" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <rect x="12" y="12" width="120" height="24" rx="5" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="1"/>
+      <text x="18" y="28" fill="#0369a1" font-size="10" font-weight="800">🌐 NGROK INGRESS</text>
 
-      <text x="10" y="46" fill="#475569" font-size="9.5" font-weight="600">Public TLS Edge Domain:</text>
-      <rect x="10" y="54" width="207" height="20" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="16" y="68" fill="#0284c7" font-size="8.8" font-family="monospace">giver-entail-causing.ngrok...</text>
-      <text x="10" y="90" fill="#334155" font-size="9.5">Forwards to: <tspan fill="#16a34a" font-weight="700">localhost:3005</tspan></text>
-      <text x="10" y="106" fill="#64748b" font-size="9">Low-overhead transparent reverse proxy</text>
+      <text x="12" y="55" fill="#475569" font-size="11" font-weight="700">Public TLS Edge Tunnel:</text>
+      <rect x="12" y="63" width="295" height="26" rx="5" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="20" y="80" fill="#0284c7" font-size="10.5" font-family="monospace" font-weight="600">giver-entail-causing.ngrok-free.app</text>
+
+      <g fill="#334155" font-size="10.5">
+        <text x="12" y="110">Forwarding Target: <tspan fill="#16a34a" font-weight="800">localhost:3005</tspan></text>
+        <text x="12" y="128" fill="#64748b">Transparent zero-latency TLS termination</text>
+      </g>
     </g>
 
     <!-- Twilio Telephony Webhook -->
-    <g transform="translate(14, 345)">
-      <rect width="227" height="175" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.2" filter="url(#subcardShadow)"/>
-      <rect x="10" y="10" width="85" height="20" rx="4" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
-      <text x="15" y="24" fill="#b45309" font-size="9" font-weight="800">⚡ WEBHOOK</text>
-      <text x="105" y="24" fill="#0f172a" font-size="11" font-weight="800">Twilio Telephony</text>
+    <g transform="translate(18, 445)">
+      <rect width="319" height="225" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <rect x="12" y="12" width="95" height="24" rx="5" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
+      <text x="18" y="28" fill="#b45309" font-size="10" font-weight="800">⚡ WEBHOOK</text>
+      <text x="118" y="29" fill="#0f172a" font-size="13" font-weight="800">Twilio Telephony Voice</text>
 
-      <rect x="10" y="38" width="207" height="34" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="16" y="51" fill="#b45309" font-size="8.8" font-family="monospace">POST /twiml/mission-voice</text>
-      <text x="16" y="65" fill="#b45309" font-size="8.8" font-family="monospace">POST /twiml/mission-gather</text>
+      <rect x="12" y="44" width="295" height="42" rx="5" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="18" y="60" fill="#b45309" font-size="10" font-family="monospace" font-weight="700">POST /twiml/mission-voice</text>
+      <text x="18" y="77" fill="#b45309" font-size="10" font-family="monospace" font-weight="700">POST /twiml/mission-gather</text>
 
-      <text x="10" y="88" fill="#475569" font-size="9.5" font-weight="700">Inbound Telephony Payload:</text>
-      <text x="10" y="104" fill="#64748b" font-size="9">• CallSid: "CA..." (unique session)</text>
-      <text x="10" y="120" fill="#64748b" font-size="9">• SpeechResult: Inbound ASR text</text>
-      <text x="10" y="136" fill="#64748b" font-size="9">• Confidence: Floating-point 0..1</text>
-      <text x="10" y="152" fill="#b45309" font-size="9" font-weight="700">Generates: TwiML XML (&lt;Play&gt; &amp; &lt;Gather&gt;)</text>
-      <text x="10" y="166" fill="#16a34a" font-size="8.8">Zero-latency prompt synthesis</text>
+      <text x="12" y="106" fill="#475569" font-size="11" font-weight="700">Inbound Call Payload:</text>
+      <g fill="#64748b" font-size="10.5">
+        <text x="12" y="125">• CallSid: "CA..." (unique session hash)</text>
+        <text x="12" y="143">• SpeechResult: Real-time user transcription</text>
+        <text x="12" y="161">• Confidence: Speech recognition score</text>
+      </g>
+      <rect x="12" y="174" width="295" height="40" rx="5" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
+      <text x="18" y="191" fill="#b45309" font-size="10.5" font-weight="800">Returns: TwiML XML (&lt;Play&gt; &amp; &lt;Gather&gt;)</text>
+      <text x="18" y="206" fill="#15803d" font-size="10">Sub-second conversational response synthesis</text>
     </g>
 
-    <!-- Local Static Audio FS -->
-    <g transform="translate(14, 535)">
-      <rect width="227" height="145" rx="8" fill="#ffffff" stroke="#0d9488" stroke-width="1.2" filter="url(#subcardShadow)"/>
-      <rect x="10" y="10" width="115" height="20" rx="4" fill="#f0fdfa" stroke="#5eead4" stroke-width="1"/>
-      <text x="15" y="24" fill="#0f766e" font-size="9" font-weight="800">📁 LOCAL HTTP FS</text>
+    <!-- Local Static Audio FS Route -->
+    <g transform="translate(18, 690)">
+      <rect width="319" height="195" rx="10" fill="#ffffff" stroke="#0d9488" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <rect x="12" y="12" width="135" height="24" rx="5" fill="#f0fdfa" stroke="#5eead4" stroke-width="1"/>
+      <text x="18" y="28" fill="#0f766e" font-size="10" font-weight="800">📁 LOCAL HTTP FS</text>
 
-      <rect x="10" y="38" width="207" height="20" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="16" y="52" fill="#0f766e" font-size="9" font-family="monospace" font-weight="700">GET /audio/:filename.mp3</text>
-      
-      <text x="10" y="76" fill="#475569" font-size="9.5" font-weight="700">Cartesia Audio Delivery Route:</text>
-      <text x="10" y="94" fill="#64748b" font-size="9">• Disk Source: /tmp/cartesia_audio/</text>
-      <text x="10" y="110" fill="#64748b" font-size="9">• Response: HTTP 200 (audio/mpeg)</text>
-      <text x="10" y="126" fill="#16a34a" font-size="9" font-weight="700">Streaming latency &lt; 15ms</text>
-      <text x="10" y="139" fill="#0d9488" font-size="8.8">Automatic cleanup after expiration</text>
+      <rect x="12" y="44" width="295" height="26" rx="5" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="18" y="61" fill="#0f766e" font-size="10.5" font-family="monospace" font-weight="700">GET /audio/:filename.mp3</text>
+
+      <text x="12" y="92" fill="#475569" font-size="11" font-weight="700">Cartesia Audio Delivery Route:</text>
+      <g fill="#64748b" font-size="10.5">
+        <text x="12" y="111">• Disk Source: /tmp/cartesia_audio/</text>
+        <text x="12" y="130">• Response: HTTP 200 (audio/mpeg stream)</text>
+        <text x="12" y="149">• Latency: &lt; 15ms streaming start</text>
+      </g>
+      <rect x="12" y="160" width="295" height="24" rx="4" fill="#f0fdfa"/>
+      <text x="18" y="176" fill="#0f766e" font-size="10" font-weight="700">Cached on disk; cleared after call mission</text>
     </g>
   </g>
 
-  <!-- ==================== COLUMN 3: CORE BACKEND & TOOLS SUITE (LIGHT THEME) ==================== -->
-  <g id="col_backend" transform="translate(640, 105)">
-    <rect width="535" height="705" rx="14" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="url(#cardShadow)"/>
-    <rect x="0" y="0" width="535" height="44" rx="14" fill="#eff6ff"/>
-    <line x1="0" y1="44" x2="535" y2="44" stroke="#bfdbfe" stroke-width="1"/>
-    <text x="20" y="28" fill="#1e40af" font-size="12" font-weight="800" letter-spacing="0.5">3. ASSISTANT AI CORE (NODE.JS / EXPRESS :3005) &amp; TOOL ENGINE</text>
+  <!-- ==================== COLUMN 3: CORE BACKEND & TOOLS SUITE ==================== -->
+  <g id="col_backend" transform="translate(870, 130)">
+    <rect width="680" height="910" rx="16" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <rect x="0" y="0" width="680" height="52" rx="16" fill="#eff6ff"/>
+    <line x1="0" y1="52" x2="680" y2="52" stroke="#bfdbfe" stroke-width="1"/>
+    <text x="24" y="33" fill="#1e40af" font-size="14" font-weight="800" letter-spacing="0.5">3. ASSISTANT AI CORE (NODE.JS / EXPRESS :3005) &amp; TOOL ENGINE</text>
 
     <!-- Security Firewall & Caller ID Bound Dispatcher -->
-    <g transform="translate(15, 52)">
-      <rect width="505" height="58" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
-      <text x="15" y="20" fill="#0f172a" font-size="11" font-weight="800">🛡️ Security Firewall &amp; Strict Caller-ID Identity Router</text>
-      <text x="15" y="37" fill="#475569" font-size="9.5">Validates verified phone numbers (+34695140890 / +34664458809). Phone number serves as identity token.</text>
-      <text x="15" y="50" fill="#64748b" font-size="9">Strict sandbox: zero memory crossing; intents dispatched to isolated specialized service modules.</text>
+    <g transform="translate(18, 68)">
+      <rect width="644" height="66" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      <text x="18" y="24" fill="#0f172a" font-size="12.5" font-weight="800">🛡️ Security Firewall &amp; Strict Caller-ID Identity Router</text>
+      <text x="18" y="43" fill="#475569" font-size="11">Validates incoming phone credentials (+34695140890 / +34664458809). Phone numbers act as cryptographic tokens.</text>
+      <text x="18" y="58" fill="#64748b" font-size="10.5">Zero cross-user data leakage. Intent-driven routing directly dispatches tasks to isolated specialized tools.</text>
     </g>
 
-    <!-- 8 Specialized Modular Tools Grid -->
+    <!-- 8 Specialized Modular Tools Grid (Spacious 2x4 Layout) -->
     <!-- Tool 1: Wardrobe Vision -->
-    <g transform="translate(15, 118)">
-      <rect width="245" height="102" rx="8" fill="#ffffff" stroke="#ec4899" stroke-width="1.1" filter="url(#subcardShadow)"/>
-      <text x="10" y="18" fill="#be185d" font-size="10.5" font-weight="800">👗 Wardrobe &amp; Vision Service</text>
-      <text x="10" y="33" fill="#64748b" font-size="8.8">Protocol: <tspan fill="#7c3aed" font-weight="700">AI SDK (Multimodal)</tspan></text>
-      <text x="10" y="50" fill="#334155" font-size="8.8">• Input: Raw photo buffer via Meta Graph</text>
-      <text x="10" y="66" fill="#334155" font-size="8.8">• Processing: Sharp + Gemini 3.7 Vision</text>
-      <text x="10" y="82" fill="#334155" font-size="8.8">• Output: Retouched image + Styling tips</text>
-      <text x="10" y="96" fill="#be185d" font-size="8.5" font-weight="600">Automatic outfit cataloging</text>
+    <g transform="translate(18, 148)">
+      <rect width="314" height="128" rx="10" fill="#ffffff" stroke="#ec4899" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <text x="14" y="22" fill="#be185d" font-size="12" font-weight="800">👗 Wardrobe &amp; Vision Service</text>
+      <text x="14" y="39" fill="#64748b" font-size="9.5">Protocol: <tspan fill="#7c3aed" font-weight="700">AI SDK (Multimodal)</tspan></text>
+      <g fill="#334155" font-size="10.5">
+        <text x="14" y="59">• Input: Photo buffer from Meta Graph API</text>
+        <text x="14" y="77">• Processing: Sharp + Gemini 3.7 Vision</text>
+        <text x="14" y="95">• Output: Retouched image + Styling notes</text>
+      </g>
+      <rect x="14" y="103" width="286" height="18" rx="4" fill="#fdf2f8"/>
+      <text x="20" y="116" fill="#be185d" font-size="9.5" font-weight="700">Haute Couture &amp; event outfit suggestions</text>
     </g>
 
     <!-- Tool 2: Twilio Voice Mission -->
-    <g transform="translate(275, 118)">
-      <rect width="245" height="102" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.1" filter="url(#subcardShadow)"/>
-      <text x="10" y="18" fill="#b45309" font-size="10.5" font-weight="800">📞 Twilio Voice Mission Engine</text>
-      <text x="10" y="33" fill="#64748b" font-size="8.8">Protocol: <tspan fill="#0284c7" font-weight="700">REST API + TwiML</tspan></text>
-      <text x="10" y="50" fill="#334155" font-size="8.8">• Outbound: twilio.calls.create()</text>
-      <text x="10" y="66" fill="#334155" font-size="8.8">• Interactive loop: Gemini 3.1-Lite + Cartesia</text>
-      <text x="10" y="82" fill="#334155" font-size="8.8">• Guardrails: 'hold on / one moment' detector</text>
-      <text x="10" y="96" fill="#16a34a" font-size="8.5" font-weight="600">Human-like conversation flow</text>
+    <g transform="translate(348, 148)">
+      <rect width="314" height="128" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <text x="14" y="22" fill="#b45309" font-size="12" font-weight="800">📞 Twilio Voice Mission Engine</text>
+      <text x="14" y="39" fill="#64748b" font-size="9.5">Protocol: <tspan fill="#0284c7" font-weight="700">REST API + TwiML</tspan></text>
+      <g fill="#334155" font-size="10.5">
+        <text x="14" y="59">• Outbound: twilio.calls.create()</text>
+        <text x="14" y="77">• Dialogue Loop: Gemini 3.1-Lite + Cartesia</text>
+        <text x="14" y="95">• Guardrails: 'hold on / one moment' detector</text>
+      </g>
+      <rect x="14" y="103" width="286" height="18" rx="4" fill="#fffbeb"/>
+      <text x="20" y="116" fill="#b45309" font-size="9.5" font-weight="700">Zero-latency human-like conversation</text>
     </g>
 
     <!-- Tool 3: Expense OCR Manager -->
-    <g transform="translate(15, 228)">
-      <rect width="245" height="102" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.1" filter="url(#subcardShadow)"/>
-      <text x="10" y="18" fill="#047857" font-size="10.5" font-weight="800">🧾 Expense &amp; Receipt OCR</text>
-      <text x="10" y="33" fill="#64748b" font-size="8.8">Protocol: <tspan fill="#7c3aed" font-weight="700">AI SDK Vision + OKF FS</tspan></text>
-      <text x="10" y="50" fill="#334155" font-size="8.8">• Input: Invoice/receipt photo from chat</text>
-      <text x="10" y="66" fill="#334155" font-size="8.8">• Extraction: JSON { total, tax, vendor, items }</text>
-      <text x="10" y="82" fill="#334155" font-size="8.8">• Ledger: storage/expenses.json + OKF node</text>
-      <text x="10" y="96" fill="#047857" font-size="8.5" font-weight="600">Instant category attribution</text>
+    <g transform="translate(18, 290)">
+      <rect width="314" height="128" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <text x="14" y="22" fill="#047857" font-size="12" font-weight="800">🧾 Expense &amp; Receipt OCR</text>
+      <text x="14" y="39" fill="#64748b" font-size="9.5">Protocol: <tspan fill="#7c3aed" font-weight="700">AI SDK Vision + OKF FS</tspan></text>
+      <g fill="#334155" font-size="10.5">
+        <text x="14" y="59">• Input: Receipt photo from WhatsApp</text>
+        <text x="14" y="77">• Extract: JSON { total, tax, vendor, items }</text>
+        <text x="14" y="95">• Ledger: storage/expenses.json + OKF Node</text>
+      </g>
+      <rect x="14" y="103" width="286" height="18" rx="4" fill="#ecfdf5"/>
+      <text x="20" y="116" fill="#047857" font-size="9.5" font-weight="700">Automated financial classification</text>
     </g>
 
     <!-- Tool 4: Google Workspace -->
-    <g transform="translate(275, 228)">
-      <rect width="245" height="102" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.1" filter="url(#subcardShadow)"/>
-      <text x="10" y="18" fill="#1d4ed8" font-size="10.5" font-weight="800">📅 Google Workspace Manager</text>
-      <text x="10" y="33" fill="#64748b" font-size="8.8">Protocol: <tspan fill="#2563eb" font-weight="700">OAuth2 REST APIs</tspan></text>
-      <text x="10" y="50" fill="#334155" font-size="8.8">• Gmail API: Priority reading &amp; draft creator</text>
-      <text x="10" y="66" fill="#334155" font-size="8.8">• Calendar API: Event booking &amp; reminders</text>
-      <text x="10" y="82" fill="#334155" font-size="8.8">• Drive API: Dossier storage &amp; document sync</text>
-      <text x="10" y="96" fill="#1d4ed8" font-size="8.5" font-weight="600">Scoped user credentials</text>
+    <g transform="translate(348, 290)">
+      <rect width="314" height="128" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <text x="14" y="22" fill="#1d4ed8" font-size="12" font-weight="800">📅 Google Workspace Manager</text>
+      <text x="14" y="39" fill="#64748b" font-size="9.5">Protocol: <tspan fill="#2563eb" font-weight="700">OAuth2 REST APIs</tspan></text>
+      <g fill="#334155" font-size="10.5">
+        <text x="14" y="59">• Gmail API: Priority reading &amp; draft creator</text>
+        <text x="14" y="77">• Calendar API: Event booking &amp; reminders</text>
+        <text x="14" y="95">• Drive API: Dossier storage &amp; document sync</text>
+      </g>
+      <rect x="14" y="103" width="286" height="18" rx="4" fill="#eff6ff"/>
+      <text x="20" y="116" fill="#1d4ed8" font-size="9.5" font-weight="700">Restricted OAuth2 token scopes</text>
     </g>
 
     <!-- Tool 5: Travel Concierge -->
-    <g transform="translate(15, 338)">
-      <rect width="245" height="102" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.1" filter="url(#subcardShadow)"/>
-      <text x="10" y="18" fill="#6d28d9" font-size="10.5" font-weight="800">✈️ Travel Concierge &amp; PDF</text>
-      <text x="10" y="33" fill="#64748b" font-size="8.8">Protocol: <tspan fill="#0284c7" font-weight="700">REST Weather + PDFKit</tspan></text>
-      <text x="10" y="50" fill="#334155" font-size="8.8">• Query: OpenWeatherMap + Local Places API</text>
-      <text x="10" y="66" fill="#334155" font-size="8.8">• Layout: Executive editorial travel booklet</text>
-      <text x="10" y="82" fill="#334155" font-size="8.8">• Delivery: sendDocument() via WhatsApp</text>
-      <text x="10" y="96" fill="#6d28d9" font-size="8.5" font-weight="600">Automatic itinerary synthesis</text>
+    <g transform="translate(18, 432)">
+      <rect width="314" height="128" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <text x="14" y="22" fill="#6d28d9" font-size="12" font-weight="800">✈️ Travel Concierge &amp; PDF</text>
+      <text x="14" y="39" fill="#64748b" font-size="9.5">Protocol: <tspan fill="#0284c7" font-weight="700">REST Weather + PDFKit</tspan></text>
+      <g fill="#334155" font-size="10.5">
+        <text x="14" y="59">• Query: OpenWeatherMap + Places API</text>
+        <text x="14" y="77">• Layout: Executive editorial travel booklet</text>
+        <text x="14" y="95">• Delivery: sendDocument() via WhatsApp</text>
+      </g>
+      <rect x="14" y="103" width="286" height="18" rx="4" fill="#f5f3ff"/>
+      <text x="20" y="116" fill="#6d28d9" font-size="9.5" font-weight="700">Custom tailored travel dossiers</text>
     </g>
 
     <!-- Tool 6: OKF Knowledge Memory -->
-    <g transform="translate(275, 338)">
-      <rect width="245" height="102" rx="8" fill="#ffffff" stroke="#0d9488" stroke-width="1.1" filter="url(#subcardShadow)"/>
-      <text x="10" y="18" fill="#0f766e" font-size="10.5" font-weight="800">🧠 OKF Knowledge Vault</text>
-      <text x="10" y="33" fill="#64748b" font-size="8.8">Protocol: <tspan fill="#0d9488" font-weight="700">Markdown AST + Local FS</tspan></text>
-      <text x="10" y="50" fill="#334155" font-size="8.8">• Directory: storage/knowledge_base/</text>
-      <text x="10" y="66" fill="#334155" font-size="8.8">• Entities: Contacts, Events, Expenses, Tools</text>
-      <text x="10" y="82" fill="#334155" font-size="8.8">• Auto-Consolidate: Nightly conversation rollup</text>
-      <text x="10" y="96" fill="#0f766e" font-size="8.5" font-weight="600">Bi-directional [[wikilinks]]</text>
+    <g transform="translate(348, 432)">
+      <rect width="314" height="128" rx="10" fill="#ffffff" stroke="#0d9488" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <text x="14" y="22" fill="#0f766e" font-size="12" font-weight="800">🧠 OKF Knowledge Vault</text>
+      <text x="14" y="39" fill="#64748b" font-size="9.5">Protocol: <tspan fill="#0d9488" font-weight="700">Markdown AST + Local FS</tspan></text>
+      <g fill="#334155" font-size="10.5">
+        <text x="14" y="59">• Path: storage/knowledge_base/</text>
+        <text x="14" y="77">• Entities: Contacts, Events, Expenses, Tools</text>
+        <text x="14" y="95">• Rollup: Nightly automatic consolidation</text>
+      </g>
+      <rect x="14" y="103" width="286" height="18" rx="4" fill="#f0fdfa"/>
+      <text x="20" y="116" fill="#0f766e" font-size="9.5" font-weight="700">Bi-directional [[wikilinks]] graph</text>
     </g>
 
     <!-- Tool 7: Executive Press Briefing -->
-    <g transform="translate(15, 448)">
-      <rect width="245" height="102" rx="8" fill="#ffffff" stroke="#e11d48" stroke-width="1.1" filter="url(#subcardShadow)"/>
-      <text x="10" y="18" fill="#be123c" font-size="10.5" font-weight="800">📰 Executive Press Briefing</text>
-      <text x="10" y="33" fill="#64748b" font-size="8.8">Protocol: <tspan fill="#7c3aed" font-weight="700">AI Search + Audio TTS</tspan></text>
-      <text x="10" y="50" fill="#334155" font-size="8.8">• On-demand topics ("AI news &amp; luxury trends")</text>
-      <text x="10" y="66" fill="#334155" font-size="8.8">• Synthesis: 3 high-impact executive bullets</text>
-      <text x="10" y="82" fill="#334155" font-size="8.8">• Voice Note: Optional spoken audio digest</text>
-      <text x="10" y="96" fill="#be123c" font-size="8.5" font-weight="600">Curated executive intel</text>
+    <g transform="translate(18, 574)">
+      <rect width="314" height="128" rx="10" fill="#ffffff" stroke="#e11d48" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <text x="14" y="22" fill="#be123c" font-size="12" font-weight="800">📰 Executive Press Briefing</text>
+      <text x="14" y="39" fill="#64748b" font-size="9.5">Protocol: <tspan fill="#7c3aed" font-weight="700">AI Search + Audio TTS</tspan></text>
+      <g fill="#334155" font-size="10.5">
+        <text x="14" y="59">• On-demand: "AI news &amp; luxury trends"</text>
+        <text x="14" y="77">• Synthesis: 3 high-impact executive bullets</text>
+        <text x="14" y="95">• Voice Note: Optional spoken audio digest</text>
+      </g>
+      <rect x="14" y="103" width="286" height="18" rx="4" fill="#fff1f2"/>
+      <text x="20" y="116" fill="#be123c" font-size="9.5" font-weight="700">Instant intelligence summaries</text>
     </g>
 
     <!-- Tool 8: Third-Party WhatsApp Dispatcher -->
-    <g transform="translate(275, 448)">
-      <rect width="245" height="102" rx="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.1" filter="url(#subcardShadow)"/>
-      <text x="10" y="18" fill="#15803d" font-size="10.5" font-weight="800">✉️ Third-Party Dispatcher</text>
-      <text x="10" y="33" fill="#64748b" font-size="8.8">Protocol: <tspan fill="#0284c7" font-weight="700">Meta Graph REST API</tspan></text>
-      <text x="10" y="50" fill="#334155" font-size="8.8">• Request: "Send a WhatsApp to..."</text>
-      <text x="10" y="66" fill="#334155" font-size="8.8">• Draft: Assistant generates preview for approval</text>
-      <text x="10" y="82" fill="#334155" font-size="8.8">• Execution: Dispatches only upon explicit 'OK'</text>
-      <text x="10" y="96" fill="#15803d" font-size="8.5" font-weight="600">Zero unintended dispatches</text>
+    <g transform="translate(348, 574)">
+      <rect width="314" height="128" rx="10" fill="#ffffff" stroke="#16a34a" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <text x="14" y="22" fill="#15803d" font-size="12" font-weight="800">✉️ Third-Party Dispatcher</text>
+      <text x="14" y="39" fill="#64748b" font-size="9.5">Protocol: <tspan fill="#0284c7" font-weight="700">Meta Graph REST API</tspan></text>
+      <g fill="#334155" font-size="10.5">
+        <text x="14" y="59">• Request: "Send a message to [Contact]..."</text>
+        <text x="14" y="77">• Draft: Prepares preview and requests OK</text>
+        <text x="14" y="95">• Execution: Sends strictly upon approval</text>
+      </g>
+      <rect x="14" y="103" width="286" height="18" rx="4" fill="#f0fdf4"/>
+      <text x="20" y="116" fill="#15803d" font-size="9.5" font-weight="700">Zero accidental dispatches</text>
     </g>
 
-    <!-- Core Communication Protocols Summary (Light Theme) -->
-    <g transform="translate(15, 560)">
-      <rect width="505" height="125" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
-      <text x="15" y="22" fill="#0f172a" font-size="11" font-weight="800">🔗 AssistantAI Communication Interface Summary</text>
-      <text x="15" y="42" fill="#334155" font-size="9.5">• <tspan fill="#ea580c" font-weight="700">[WEBHOOK]</tspan> Ingress HTTP POST from Meta &amp; Twilio at /webhook and /twiml routes</text>
-      <text x="15" y="59" fill="#334155" font-size="9.5">• <tspan fill="#0284c7" font-weight="700">[REST API]</tspan> Outbound HTTPS to Meta Graph API, Twilio Calls, Cartesia TTS &amp; Weather</text>
-      <text x="15" y="76" fill="#334155" font-size="9.5">• <tspan fill="#7c3aed" font-weight="700">[AI SDK]</tspan> @google/generative-ai with automatic fallback candidates (Failover &lt; 50ms)</text>
-      <text x="15" y="93" fill="#334155" font-size="9.5">• <tspan fill="#2563eb" font-weight="700">[OAUTH2 API]</tspan> googleapis (Gmail, Calendar, Drive) with auto-refreshing bearer tokens</text>
-      <text x="15" y="110" fill="#334155" font-size="9.5">• <tspan fill="#059669" font-weight="700">[MCP SERVER]</tspan> Modular agent expansion (NotebookLM, Chart Visualizer, Data Agent Kit)</text>
+    <!-- Communication Protocols Summary Inside Core -->
+    <g transform="translate(18, 716)">
+      <rect width="644" height="168" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      <text x="20" y="26" fill="#0f172a" font-size="13" font-weight="800">🔗 AssistantAI Communication Interface Summary</text>
+      <g fill="#334155" font-size="11">
+        <text x="20" y="52">• <tspan fill="#ea580c" font-weight="800">[WEBHOOK]</tspan> Ingress HTTP POST from Meta &amp; Twilio at /webhook and /twiml routes</text>
+        <text x="20" y="74">• <tspan fill="#0284c7" font-weight="800">[REST API]</tspan> Outbound HTTPS to Meta Graph API, Twilio Calls, Cartesia TTS &amp; OpenWeather</text>
+        <text x="20" y="96">• <tspan fill="#7c3aed" font-weight="800">[AI SDK]</tspan> @google/generative-ai with automatic fallback candidates (Failover &lt; 50ms)</text>
+        <text x="20" y="118">• <tspan fill="#2563eb" font-weight="800">[OAUTH2 API]</tspan> googleapis (Gmail, Calendar, Drive) with auto-refreshing bearer tokens</text>
+        <text x="20" y="140">• <tspan fill="#059669" font-weight="800">[MCP SERVER]</tspan> Modular agent expansion (NotebookLM, Chart Visualizer, Data Agent Kit)</text>
+        <text x="20" y="160" fill="#64748b" font-weight="600">Unified Express event loop orchestrates asynchronous tool execution with zero thread blocking.</text>
+      </g>
     </g>
   </g>
 
-  <!-- ==================== COLUMN 4: EXTERNAL PLATFORMS & MCP (LIGHT THEME) ==================== -->
-  <g id="col_external" transform="translate(1205, 105)">
-    <rect width="585" height="705" rx="14" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" filter="url(#cardShadow)"/>
-    <rect x="0" y="0" width="585" height="44" rx="14" fill="#f5f3ff"/>
-    <line x1="0" y1="44" x2="585" y2="44" stroke="#ddd6fe" stroke-width="1"/>
-    <text x="20" y="28" fill="#5b21b6" font-size="12" font-weight="800" letter-spacing="0.5">4. EXTERNAL PROVIDERS, AI PLATFORMS &amp; MCP PROTOCOL</text>
+  <!-- ==================== COLUMN 4: EXTERNAL PROVIDERS & MCP ==================== -->
+  <g id="col_external" transform="translate(1580, 130)">
+    <rect width="740" height="910" rx="16" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <rect x="0" y="0" width="740" height="52" rx="16" fill="#f5f3ff"/>
+    <line x1="0" y1="52" x2="740" y2="52" stroke="#ddd6fe" stroke-width="1"/>
+    <text x="24" y="33" fill="#5b21b6" font-size="14" font-weight="800" letter-spacing="0.5">4. EXTERNAL PROVIDERS, AI PLATFORMS &amp; MCP PROTOCOL</text>
 
     <!-- Google Gemini Multi-Tier AI Platform -->
-    <g transform="translate(15, 56)">
-      <rect width="555" height="155" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.2" filter="url(#subcardShadow)"/>
-      <rect x="10" y="10" width="85" height="20" rx="4" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1"/>
-      <text x="15" y="24" fill="#6d28d9" font-size="9" font-weight="800">🧠 AI SDK</text>
-      <text x="105" y="24" fill="#0f172a" font-size="12" font-weight="800">Google Gemini Generative AI Platform</text>
+    <g transform="translate(20, 70)">
+      <rect width="700" height="195" rx="12" fill="#ffffff" stroke="#7c3aed" stroke-width="1.3" filter="url(#subcardShadow)"/>
+      <rect x="14" y="14" width="95" height="26" rx="5" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1"/>
+      <text x="22" y="31" fill="#6d28d9" font-size="10.5" font-weight="800">🧠 AI SDK</text>
+      <text x="124" y="32" fill="#0f172a" font-size="14" font-weight="800">Google Gemini Generative AI Platform</text>
 
-      <line x1="10" y1="36" x2="545" y2="36" stroke="#e2e8f0"/>
-      <text x="10" y="50" fill="#475569" font-size="9.5">Client Library: <tspan fill="#6d28d9" font-family="monospace" font-weight="700">@google/generative-ai (gRPC / HTTPS REST)</tspan></text>
+      <text x="14" y="60" fill="#475569" font-size="11">Client Library: <tspan fill="#6d28d9" font-family="monospace" font-weight="700">@google/generative-ai (gRPC / HTTPS REST)</tspan></text>
       
       <!-- Tier 1: 3.7 Flash -->
-      <rect x="10" y="58" width="260" height="88" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1"/>
-      <text x="18" y="76" fill="#5b21b6" font-size="11" font-weight="800">gemini-3.7-flash (Smart Tier)</text>
-      <text x="18" y="92" fill="#334155" font-size="9">• Latency: ~1.75s | High reasoning capacity</text>
-      <text x="18" y="107" fill="#334155" font-size="9">• Role: Executive WhatsApp, Wardrobe Vision,</text>
-      <text x="18" y="121" fill="#334155" font-size="9">  Complex Planning &amp; Tool Orchestration</text>
-      <text x="18" y="136" fill="#16a34a" font-size="9" font-weight="700">Default Primary for Chat Experience</text>
+      <g transform="translate(14, 70)">
+        <rect width="326" height="110" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#5b21b6" font-size="12" font-weight="800">gemini-3.7-flash (Smart Tier)</text>
+        <g fill="#334155" font-size="10.5">
+          <text x="14" y="44">• Latency: ~1.75s | High reasoning depth</text>
+          <text x="14" y="62">• Role: Executive Chat, Wardrobe Vision,</text>
+          <text x="14" y="80">  Complex Planning &amp; Tool Orchestration</text>
+        </g>
+        <rect x="14" y="87" width="298" height="18" rx="4" fill="#ffffff"/>
+        <text x="20" y="100" fill="#15803d" font-size="10" font-weight="800">Default Primary for Executive Chat</text>
+      </g>
 
       <!-- Tier 2: 3.1 Flash-Lite -->
-      <rect x="285" y="58" width="260" height="88" rx="6" fill="#fffbeb" stroke="#f59e0b" stroke-width="1"/>
-      <text x="293" y="76" fill="#92400e" font-size="11" font-weight="800">gemini-3.1-flash-lite (Fast Tier)</text>
-      <text x="293" y="92" fill="#334155" font-size="9">• Latency: ~0.82s | Ultra-fast turnarounds</text>
-      <text x="293" y="107" fill="#334155" font-size="9">• Role: Telephony Voice Missions, Audio</text>
-      <text x="293" y="121" fill="#334155" font-size="9">  Transcription &amp; High-Availability Fallback</text>
-      <text x="293" y="136" fill="#0284c7" font-size="9" font-weight="700">Primary for Voice / Zero Rate Limit 429</text>
+      <g transform="translate(358, 70)">
+        <rect width="328" height="110" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#92400e" font-size="12" font-weight="800">gemini-3.1-flash-lite (Fast Tier)</text>
+        <g fill="#334155" font-size="10.5">
+          <text x="14" y="44">• Latency: ~0.82s | Ultra-low latency</text>
+          <text x="14" y="62">• Role: Phone Voice Missions, Audio</text>
+          <text x="14" y="80">  Transcription &amp; High-Availability Fallback</text>
+        </g>
+        <rect x="14" y="87" width="300" height="18" rx="4" fill="#ffffff"/>
+        <text x="20" y="100" fill="#0284c7" font-size="10" font-weight="800">Primary for Voice / Zero Rate Limit 429</text>
+      </g>
     </g>
 
-    <!-- Cartesia Sonic-3 & Polly Fallback -->
-    <g transform="translate(15, 222)">
-      <rect width="270" height="135" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.2" filter="url(#subcardShadow)"/>
-      <rect x="10" y="10" width="95" height="20" rx="4" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
-      <text x="15" y="24" fill="#b45309" font-size="9" font-weight="800">🌐 REST API</text>
-      <text x="115" y="24" fill="#0f172a" font-size="11" font-weight="800">Cartesia TTS</text>
+    <!-- Mid Row: Cartesia TTS & Google Workspace -->
+    <!-- Cartesia TTS -->
+    <g transform="translate(20, 280)">
+      <rect width="340" height="165" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <rect x="14" y="12" width="105" height="24" rx="5" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
+      <text x="20" y="28" fill="#b45309" font-size="10" font-weight="800">🌐 REST API</text>
+      <text x="130" y="29" fill="#0f172a" font-size="13" font-weight="800">Cartesia Voice TTS</text>
 
-      <rect x="10" y="36" width="250" height="20" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="16" y="50" fill="#0284c7" font-size="8.8" font-family="monospace">POST https://api.cartesia.ai/tts</text>
-      <text x="10" y="72" fill="#b45309" font-size="9.5" font-weight="700">• Model: sonic-3 (Castilian Spanish)</text>
-      <text x="10" y="88" fill="#64748b" font-size="9">• Voice ID: a0e99841-438c-4a64-b679...</text>
-      <text x="10" y="104" fill="#64748b" font-size="9">• Output: 24kHz audio/mpeg binary</text>
-      <text x="10" y="120" fill="#64748b" font-size="9">• Local cache: /tmp/cartesia_audio/</text>
-      <text x="10" y="136" fill="#16a34a" font-size="8.8" font-weight="700">Fallback: Amazon Polly (Lucia neural)</text>
+      <rect x="14" y="44" width="312" height="24" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="22" y="60" fill="#0284c7" font-size="9.5" font-family="monospace">POST https://api.cartesia.ai/tts/bytes</text>
+
+      <g fill="#334155" font-size="10.5">
+        <text x="14" y="88" fill="#b45309" font-weight="700">• Model: sonic-3 (Castilian Spanish)</text>
+        <text x="14" y="106" fill="#64748b">• Voice ID: a0e99841-438c-4a64-b679...</text>
+        <text x="14" y="124" fill="#64748b">• Returns: 24kHz audio/mpeg binary</text>
+      </g>
+      <rect x="14" y="134" width="312" height="22" rx="4" fill="#fffbeb"/>
+      <text x="20" y="149" fill="#15803d" font-size="10" font-weight="700">Fallback: Amazon Polly (Lucia neural)</text>
     </g>
 
-    <!-- Google Workspace OAuth Provider -->
-    <g transform="translate(300, 222)">
-      <rect width="270" height="135" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.2" filter="url(#subcardShadow)"/>
-      <rect x="10" y="10" width="105" height="20" rx="4" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
-      <text x="15" y="24" fill="#1d4ed8" font-size="9" font-weight="800">🔑 OAUTH2 API</text>
-      <text x="125" y="24" fill="#0f172a" font-size="11" font-weight="800">Google Workspace</text>
+    <!-- Google Workspace OAuth -->
+    <g transform="translate(380, 280)">
+      <rect width="340" height="165" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.2" filter="url(#subcardShadow)"/>
+      <rect x="14" y="12" width="115" height="24" rx="5" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
+      <text x="20" y="28" fill="#1d4ed8" font-size="10" font-weight="800">🔑 OAUTH2 API</text>
+      <text x="140" y="29" fill="#0f172a" font-size="13" font-weight="800">Google Workspace</text>
 
-      <text x="10" y="46" fill="#475569" font-size="9.5">Account: <tspan fill="#1d4ed8" font-weight="700">luziatheassistant@gmail.com</tspan></text>
-      <text x="10" y="66" fill="#64748b" font-size="9">• Gmail: Prioritized threads &amp; drafts</text>
-      <text x="10" y="82" fill="#64748b" font-size="9">• Calendar: VIP agenda appointments</text>
-      <text x="10" y="98" fill="#64748b" font-size="9">• Drive: Dossiers &amp; document ledger</text>
-      <text x="10" y="114" fill="#64748b" font-size="9">• Credentials: credentials.json &amp; token.json</text>
-      <text x="10" y="132" fill="#16a34a" font-size="8.8" font-weight="700">Security: Restricted OAuth2 scopes</text>
+      <text x="14" y="55" fill="#475569" font-size="10.5">Account: <tspan fill="#1d4ed8" font-weight="700">luziatheassistant@gmail.com</tspan></text>
+      <g fill="#64748b" font-size="10.5">
+        <text x="14" y="76">• Gmail: Prioritized inbox &amp; draft creator</text>
+        <text x="14" y="94">• Calendar: VIP agenda event scheduling</text>
+        <text x="14" y="112">• Drive: Dossier storage &amp; document ledger</text>
+        <text x="14" y="130">• Tokens: credentials.json &amp; token.json</text>
+      </g>
+      <rect x="14" y="136" width="312" height="20" rx="4" fill="#eff6ff"/>
+      <text x="20" y="150" fill="#1d4ed8" font-size="10" font-weight="700">Security: Granular OAuth2 permission scopes</text>
     </g>
 
     <!-- Model Context Protocol (MCP) Ecosystem -->
-    <g transform="translate(15, 368)">
-      <rect width="555" height="165" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.2" filter="url(#subcardShadow)"/>
-      <rect x="10" y="10" width="135" height="20" rx="4" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1"/>
-      <text x="15" y="24" fill="#047857" font-size="9" font-weight="800">🔌 MCP PROTOCOL</text>
-      <text x="155" y="24" fill="#0f172a" font-size="11.5" font-weight="800">Model Context Protocol (MCP) Ecosystem</text>
+    <g transform="translate(20, 460)">
+      <rect width="700" height="220" rx="12" fill="#ffffff" stroke="#059669" stroke-width="1.3" filter="url(#subcardShadow)"/>
+      <rect x="14" y="14" width="145" height="26" rx="5" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1"/>
+      <text x="22" y="31" fill="#047857" font-size="10.5" font-weight="800">🔌 MCP PROTOCOL</text>
+      <text x="174" y="32" fill="#0f172a" font-size="13.5" font-weight="800">Model Context Protocol (MCP) Ecosystem</text>
 
-      <line x1="10" y1="36" x2="545" y2="36" stroke="#e2e8f0"/>
-      <text x="10" y="50" fill="#047857" font-size="9.5" font-weight="600">Open Standard for AI Agent Tool Interoperability &amp; Dynamic Context Loading:</text>
+      <text x="14" y="58" fill="#047857" font-size="11" font-weight="600">Standardized Interoperability Layer for Autonomous Agents &amp; Tool Context:</text>
 
-      <!-- Sub-cards MCP -->
-      <rect x="10" y="58" width="170" height="95" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
-      <text x="18" y="76" fill="#166534" font-size="10" font-weight="800">notebooklm (MCP)</text>
-      <text x="18" y="93" fill="#334155" font-size="9">• Knowledge curation</text>
-      <text x="18" y="108" fill="#334155" font-size="9">• Audio podcasts</text>
-      <text x="18" y="123" fill="#334155" font-size="9">• Deep executive reports</text>
-      <text x="18" y="139" fill="#15803d" font-size="8.5" font-weight="600">Lazy-loaded tool schema</text>
+      <!-- 3 MCP Cards -->
+      <g transform="translate(14, 70)">
+        <rect width="216" height="135" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#166534" font-size="11.5" font-weight="800">notebooklm (MCP)</text>
+        <g fill="#334155" font-size="10.5">
+          <text x="14" y="46">• Source document ingestion</text>
+          <text x="14" y="66">• Audio overview podcasts</text>
+          <text x="14" y="86">• Deep executive research</text>
+        </g>
+        <rect x="14" y="98" width="188" height="24" rx="4" fill="#ffffff"/>
+        <text x="20" y="114" fill="#15803d" font-size="9.5" font-weight="700">Lazy-loaded tool schema</text>
+      </g>
 
-      <rect x="192" y="58" width="175" height="95" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
-      <text x="200" y="76" fill="#166534" font-size="10" font-weight="800">visualization (MCP)</text>
-      <text x="200" y="93" fill="#334155" font-size="9">• Tool: render_chart</text>
-      <text x="200" y="108" fill="#334155" font-size="9">• Expense trend charts</text>
-      <text x="200" y="123" fill="#334155" font-size="9">• Financial analytics</text>
-      <text x="200" y="139" fill="#15803d" font-size="8.5" font-weight="600">Direct chart generation</text>
+      <g transform="translate(242, 70)">
+        <rect width="216" height="135" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#166534" font-size="11.5" font-weight="800">visualization (MCP)</text>
+        <g fill="#334155" font-size="10.5">
+          <text x="14" y="46">• Tool: render_chart</text>
+          <text x="14" y="66">• Expense trends &amp; budgets</text>
+          <text x="14" y="86">• Financial timeline charts</text>
+        </g>
+        <rect x="14" y="98" width="188" height="24" rx="4" fill="#ffffff"/>
+        <text x="20" y="114" fill="#15803d" font-size="9.5" font-weight="700">Direct chart SVG / HTML</text>
+      </g>
 
-      <rect x="379" y="58" width="166" height="95" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
-      <text x="387" y="76" fill="#166534" font-size="10" font-weight="800">cloudrun &amp; data (MCP)</text>
-      <text x="387" y="93" fill="#334155" font-size="9">• data-agent-kit</text>
-      <text x="387" y="108" fill="#334155" font-size="9">• cloudrun deployer</text>
-      <text x="387" y="123" fill="#334155" font-size="9">• firebase tooling</text>
-      <text x="387" y="139" fill="#15803d" font-size="8.5" font-weight="600">Live cloud management</text>
+      <g transform="translate(470, 70)">
+        <rect width="216" height="135" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#166534" font-size="11.5" font-weight="800">cloudrun &amp; data (MCP)</text>
+        <g fill="#334155" font-size="10.5">
+          <text x="14" y="46">• data-agent-kit integration</text>
+          <text x="14" y="66">• Cloud Run auto deployer</text>
+          <text x="14" y="86">• Firebase security rules</text>
+        </g>
+        <rect x="14" y="98" width="188" height="24" rx="4" fill="#ffffff"/>
+        <text x="20" y="114" fill="#15803d" font-size="9.5" font-weight="700">Live cloud infrastructure</text>
+      </g>
     </g>
 
     <!-- OKF 3D Visualizer WebGL Galaxy -->
-    <g transform="translate(15, 545)">
-      <rect width="555" height="140" rx="8" fill="#ffffff" stroke="#0d9488" stroke-width="1.2" filter="url(#subcardShadow)"/>
-      <rect x="10" y="10" width="145" height="20" rx="4" fill="#f0fdfa" stroke="#5eead4" stroke-width="1"/>
-      <text x="15" y="24" fill="#0f766e" font-size="9" font-weight="800">🌌 OKF 3D VISUALIZER</text>
-      <text x="165" y="24" fill="#0f172a" font-size="11.5" font-weight="800">okf-galaxy-visualizer (Local Port 4000)</text>
+    <g transform="translate(20, 695)">
+      <rect width="700" height="190" rx="12" fill="#ffffff" stroke="#0d9488" stroke-width="1.3" filter="url(#subcardShadow)"/>
+      <rect x="14" y="14" width="165" height="26" rx="5" fill="#f0fdfa" stroke="#5eead4" stroke-width="1"/>
+      <text x="22" y="31" fill="#0f766e" font-size="10.5" font-weight="800">🌌 OKF 3D VISUALIZER</text>
+      <text x="194" y="32" fill="#0f172a" font-size="13.5" font-weight="800">okf-galaxy-visualizer (Local Port 4000)</text>
 
-      <rect x="10" y="38" width="535" height="20" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="16" y="52" fill="#0d9488" font-size="9" font-family="monospace" font-weight="700">GET /api/graph ➔ Returns JSON { nodes: GraphNode[], links: GraphLink[] }</text>
-      
-      <text x="10" y="76" fill="#334155" font-size="9.2">• Rendering Engine: Three.js + WebGL 3D Force Graph (Hardware accelerated)</text>
-      <text x="10" y="92" fill="#334155" font-size="9.2">• Physics: Perpetual Keplerian orbital balance with d3AlphaDecay(0)</text>
-      <text x="10" y="108" fill="#334155" font-size="9.2">• Layout: 8 distinct solar clusters distributed via spherical Fibonacci lattice</text>
-      <text x="10" y="126" fill="#16a34a" font-size="9" font-weight="700">1-Click Cluster Focus &amp; Live Search with instant 🎯 locator button</text>
+      <rect x="14" y="48" width="672" height="26" rx="5" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="24" y="65" fill="#0d9488" font-size="10.5" font-family="monospace" font-weight="700">GET /api/graph ➔ Returns JSON { nodes: GraphNode[], links: GraphLink[] }</text>
+
+      <g fill="#334155" font-size="11">
+        <text x="14" y="96">• Rendering Engine: Three.js + WebGL 3D Force Graph (Hardware accelerated)</text>
+        <text x="14" y="116">• Orbital Physics: Perpetual Keplerian orbital equilibrium with d3AlphaDecay(0)</text>
+        <text x="14" y="136">• Solar Topology: 8 distinct solar clusters distributed via spherical Fibonacci lattice</text>
+        <text x="14" y="156">• Chromatic Fidelity: 100% harmonized colors &amp; labels (Expenses = #eab308 golden yellow)</text>
+      </g>
+      <rect x="14" y="164" width="672" height="20" rx="4" fill="#f0fdfa"/>
+      <text x="22" y="178" fill="#0f766e" font-size="10" font-weight="800">1-Click Cluster Focus &amp; Live Search with instant 🎯 cluster locator</text>
     </g>
   </g>
 
-  <!-- ==================== FLOW CONNECTIONS (VIBRANT LIGHT CONTRAST) ==================== -->
+  <!-- ==================== FLOW CONNECTIONS ==================== -->
   <!-- 1. WhatsApp to Ingress -->
-  <path d="M 320 250 L 355 250" stroke="#ea580c" stroke-width="2.5" marker-end="url(#arrOrange)"/>
-  <rect x="323" y="226" width="32" height="16" rx="3" fill="#fff7ed" stroke="#ea580c" stroke-width="1"/>
-  <text x="326" y="238" fill="#c2410c" font-size="8" font-weight="800">JSON</text>
+  <path d="M 455 250 L 485 250" stroke="#ea580c" stroke-width="2.5" marker-end="url(#arrOrange)"/>
+  <rect x="457" y="228" width="28" height="18" rx="4" fill="#fff7ed" stroke="#ea580c" stroke-width="1"/>
+  <text x="461" y="241" fill="#c2410c" font-size="8.5" font-weight="800">JSON</text>
 
-  <!-- 2. Ngrok to Core -->
-  <path d="M 610 270 L 640 270" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrCyan)"/>
-  <rect x="612" y="248" width="32" height="16" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1"/>
-  <text x="615" y="260" fill="#0369a1" font-size="8" font-weight="800">HTTP</text>
+  <!-- 2. Ingress to Core -->
+  <path d="M 840 270 L 870 270" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrCyan)"/>
+  <rect x="842" y="248" width="28" height="18" rx="4" fill="#f0f9ff" stroke="#0284c7" stroke-width="1"/>
+  <text x="846" y="261" fill="#0369a1" font-size="8.5" font-weight="800">HTTP</text>
 
-  <!-- 3. Core to Gemini SDK -->
-  <path d="M 1175 190 L 1205 190" stroke="#7c3aed" stroke-width="2.5" marker-end="url(#arrPurple)"/>
-  <rect x="1177" y="168" width="34" height="16" rx="3" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1"/>
-  <text x="1180" y="180" fill="#6d28d9" font-size="8" font-weight="800">gRPC</text>
+  <!-- 3. Core to Gemini -->
+  <path d="M 1550 200 L 1580 200" stroke="#7c3aed" stroke-width="2.5" marker-end="url(#arrPurple)"/>
+  <rect x="1552" y="178" width="30" height="18" rx="4" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1"/>
+  <text x="1555" y="191" fill="#6d28d9" font-size="8.5" font-weight="800">gRPC</text>
 
-  <!-- 4. Core to Cartesia TTS -->
-  <path d="M 1175 365 L 1205 365" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrOrange)"/>
-  <rect x="1177" y="343" width="34" height="16" rx="3" fill="#fffbeb" stroke="#f59e0b" stroke-width="1"/>
-  <text x="1180" y="355" fill="#b45309" font-size="8" font-weight="800">REST</text>
+  <!-- 4. Core to Cartesia -->
+  <path d="M 1550 390 L 1580 390" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrOrange)"/>
+  <rect x="1552" y="368" width="30" height="18" rx="4" fill="#fffbeb" stroke="#f59e0b" stroke-width="1"/>
+  <text x="1555" y="381" fill="#b45309" font-size="8.5" font-weight="800">REST</text>
 
-  <!-- 5. Core to Google Workspace OAuth -->
-  <path d="M 1175 425 L 1205 425" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrBlue)"/>
-  <rect x="1177" y="403" width="36" height="16" rx="3" fill="#eff6ff" stroke="#2563eb" stroke-width="1"/>
-  <text x="1180" y="415" fill="#1d4ed8" font-size="8" font-weight="800">OAuth</text>
+  <!-- 5. Core to Google Workspace -->
+  <path d="M 1550 450 L 1580 450" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrBlue)"/>
+  <rect x="1552" y="428" width="32" height="18" rx="4" fill="#eff6ff" stroke="#2563eb" stroke-width="1"/>
+  <text x="1555" y="441" fill="#1d4ed8" font-size="8.5" font-weight="800">OAuth</text>
 
-  <!-- 6. Core to MCP Protocol -->
-  <path d="M 1175 490 L 1205 490" stroke="#059669" stroke-width="2.5" marker-end="url(#arrGreen)"/>
-  <rect x="1177" y="468" width="32" height="16" rx="3" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
-  <text x="1180" y="480" fill="#047857" font-size="8" font-weight="800">MCP</text>
+  <!-- 6. Core to MCP -->
+  <path d="M 1550 560 L 1580 560" stroke="#059669" stroke-width="2.5" marker-end="url(#arrGreen)"/>
+  <rect x="1552" y="538" width="28" height="18" rx="4" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+  <text x="1556" y="551" fill="#047857" font-size="8.5" font-weight="800">MCP</text>
 
-  <!-- 7. Core to OKF Visualizer Graph -->
-  <path d="M 1175 660 L 1205 660" stroke="#0d9488" stroke-width="2.5" marker-end="url(#arrTeal)"/>
-  <rect x="1177" y="638" width="34" height="16" rx="3" fill="#f0fdfa" stroke="#0d9488" stroke-width="1"/>
-  <text x="1180" y="650" fill="#0f766e" font-size="8" font-weight="800">JSON</text>
+  <!-- 7. Core to OKF Visualizer -->
+  <path d="M 1550 780 L 1580 780" stroke="#0d9488" stroke-width="2.5" marker-end="url(#arrTeal)"/>
+  <rect x="1552" y="758" width="30" height="18" rx="4" fill="#f0fdfa" stroke="#0d9488" stroke-width="1"/>
+  <text x="1555" y="771" fill="#0f766e" font-size="8.5" font-weight="800">JSON</text>
 
-  <!-- ==================== BOTTOM MATRIX: PROTOCOL SPECIFICATION (LIGHT THEME) ==================== -->
-  <g id="protocols_table" transform="translate(60, 830)">
-    <rect width="1730" height="350" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
-    <rect x="0" y="0" width="1730" height="44" rx="14" fill="#f1f5f9"/>
-    <line x1="0" y1="44" x2="1730" y2="44" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="25" y="28" fill="#0f172a" font-size="13" font-weight="800" letter-spacing="0.5">
-      5. PROTOCOL INTERFACE MATRIX &amp; DATA PAYLOAD SPECIFICATION (LIGHT SPECIFICATION)
+  <!-- ==================== BOTTOM MATRIX: PROTOCOL SPECIFICATION ==================== -->
+  <g id="protocols_table" transform="translate(80, 1070)">
+    <rect width="2240" height="500" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <rect x="0" y="0" width="2240" height="52" rx="16" fill="#f1f5f9"/>
+    <line x1="0" y1="52" x2="2240" y2="52" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="24" y="33" fill="#0f172a" font-size="14" font-weight="800" letter-spacing="0.5">
+      5. PROTOCOL INTERFACE MATRIX &amp; DATA PAYLOAD SPECIFICATION
     </text>
 
     <!-- Table Header -->
-    <g transform="translate(25, 54)">
-      <rect width="1680" height="34" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="20" y="22" fill="#475569" font-size="10.5" font-weight="800">CHANNEL / SERVICE</text>
-      <text x="260" y="22" fill="#475569" font-size="10.5" font-weight="800">METHOD / PROTOCOL</text>
-      <text x="490" y="22" fill="#475569" font-size="10.5" font-weight="800">ENDPOINT / INTERFACE</text>
-      <text x="820" y="22" fill="#475569" font-size="10.5" font-weight="800">INBOUND PAYLOAD (REQUEST)</text>
-      <text x="1220" y="22" fill="#475569" font-size="10.5" font-weight="800">RETURNED PAYLOAD (RESPONSE)</text>
-      <text x="1550" y="22" fill="#475569" font-size="10.5" font-weight="800">FAILOVER &amp; SECURITY POLICY</text>
+    <g transform="translate(24, 66)">
+      <rect width="2192" height="42" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="24" y="27" fill="#475569" font-size="12" font-weight="800">CHANNEL / SERVICE</text>
+      <text x="320" y="27" fill="#475569" font-size="12" font-weight="800">METHOD / PROTOCOL</text>
+      <text x="620" y="27" fill="#475569" font-size="12" font-weight="800">ENDPOINT / INTERFACE</text>
+      <text x="1050" y="27" fill="#475569" font-size="12" font-weight="800">INBOUND PAYLOAD (REQUEST)</text>
+      <text x="1550" y="27" fill="#475569" font-size="12" font-weight="800">RETURNED PAYLOAD (RESPONSE)</text>
+      <text x="1950" y="27" fill="#475569" font-size="12" font-weight="800">FAILOVER &amp; SECURITY POLICY</text>
     </g>
 
     <!-- Row 1: WhatsApp Ingress -->
-    <g transform="translate(25, 96)">
-      <rect width="1680" height="44" rx="6" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
-      <text x="20" y="27" fill="#c2410c" font-size="11" font-weight="800">Meta WhatsApp Ingress</text>
-      <text x="260" y="27" fill="#ea580c" font-size="11" font-weight="600">HTTPS Webhook (POST)</text>
-      <text x="490" y="27" fill="#0f172a" font-size="10" font-family="monospace" font-weight="600">/webhook/whatsapp</text>
-      <text x="820" y="27" fill="#475569" font-size="10">{ entry[0].changes[0].value.messages, from, text/audio }</text>
-      <text x="1220" y="27" fill="#16a34a" font-size="10" font-weight="700">HTTP 200 'EVENT_RECEIVED' (Instant ack)</text>
-      <text x="1550" y="27" fill="#64748b" font-size="10">Silent drop if phone not whitelisted</text>
+    <g transform="translate(24, 118)">
+      <rect width="2192" height="66" rx="8" fill="#ffffff" stroke="#f1f5f9" stroke-width="1.2"/>
+      <text x="24" y="38" fill="#c2410c" font-size="13" font-weight="800">Meta WhatsApp Ingress</text>
+      <text x="320" y="38" fill="#ea580c" font-size="12" font-weight="600">HTTPS Webhook (POST)</text>
+      <text x="620" y="38" fill="#0f172a" font-size="12" font-family="monospace" font-weight="600">/webhook/whatsapp</text>
+      <text x="1050" y="38" fill="#475569" font-size="11.5">{ entry[0].changes[0].value.messages, from, text/audio/image }</text>
+      <text x="1550" y="38" fill="#15803d" font-size="12" font-weight="700">HTTP 200 'EVENT_RECEIVED' (Instant ack)</text>
+      <text x="1950" y="38" fill="#64748b" font-size="11.5">Silent drop if phone not in whitelist</text>
     </g>
 
     <!-- Row 2: Twilio Voice Call -->
-    <g transform="translate(25, 146)">
-      <rect width="1680" height="44" rx="6" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
-      <text x="20" y="27" fill="#b45309" font-size="11" font-weight="800">Twilio Telephony Voice</text>
-      <text x="260" y="27" fill="#0284c7" font-size="11" font-weight="600">REST API + TwiML Webhook</text>
-      <text x="490" y="27" fill="#0f172a" font-size="10" font-family="monospace" font-weight="600">api.twilio.com / /twiml/*</text>
-      <text x="820" y="27" fill="#475569" font-size="10">{ to, from, CallSid, SpeechResult, Confidence }</text>
-      <text x="1220" y="27" fill="#b45309" font-size="10" font-family="monospace">&lt;Play url="..."&gt; &lt;Gather timeout="2"&gt;</text>
-      <text x="1550" y="27" fill="#64748b" font-size="10">Zero-word graceful hangup on timeout</text>
+    <g transform="translate(24, 192)">
+      <rect width="2192" height="66" rx="8" fill="#ffffff" stroke="#f1f5f9" stroke-width="1.2"/>
+      <text x="24" y="38" fill="#b45309" font-size="13" font-weight="800">Twilio Telephony Voice</text>
+      <text x="320" y="38" fill="#0284c7" font-size="12" font-weight="600">REST API + TwiML Webhook</text>
+      <text x="620" y="38" fill="#0f172a" font-size="12" font-family="monospace" font-weight="600">api.twilio.com / /twiml/*</text>
+      <text x="1050" y="38" fill="#475569" font-size="11.5">{ to, from, CallSid, SpeechResult, Confidence }</text>
+      <text x="1550" y="38" fill="#b45309" font-size="12" font-family="monospace">&lt;Play url="..."&gt; &lt;Gather timeout="2"&gt;</text>
+      <text x="1950" y="38" fill="#64748b" font-size="11.5">Zero-word graceful hangup on timeout</text>
     </g>
 
     <!-- Row 3: Google Gemini Multi-Tier -->
-    <g transform="translate(25, 196)">
-      <rect width="1680" height="44" rx="6" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
-      <text x="20" y="27" fill="#6d28d9" font-size="11" font-weight="800">Google Gemini Multi-Tier</text>
-      <text x="260" y="27" fill="#7c3aed" font-size="11" font-weight="600">AI SDK (@google/generative-ai)</text>
-      <text x="490" y="27" fill="#0f172a" font-size="10" font-family="monospace" font-weight="600">models/gemini-3.*</text>
-      <text x="820" y="27" fill="#475569" font-size="10">{ contents: Content[], systemInstruction, tools: Function[] }</text>
-      <text x="1220" y="27" fill="#6d28d9" font-size="10" font-weight="600">{ response.text, functionCalls: Call[] }</text>
-      <text x="1550" y="27" fill="#b45309" font-size="10" font-weight="700">Auto Failover: 3.7-flash ➔ 3.1-lite (&lt;50ms)</text>
+    <g transform="translate(24, 266)">
+      <rect width="2192" height="66" rx="8" fill="#ffffff" stroke="#f1f5f9" stroke-width="1.2"/>
+      <text x="24" y="38" fill="#6d28d9" font-size="13" font-weight="800">Google Gemini Multi-Tier</text>
+      <text x="320" y="38" fill="#7c3aed" font-size="12" font-weight="600">AI SDK (@google/generative-ai)</text>
+      <text x="620" y="38" fill="#0f172a" font-size="12" font-family="monospace" font-weight="600">models/gemini-3.*</text>
+      <text x="1050" y="38" fill="#475569" font-size="11.5">{ contents: Content[], systemInstruction, tools: Function[] }</text>
+      <text x="1550" y="38" fill="#6d28d9" font-size="12" font-weight="600">{ response.text, functionCalls: Call[] }</text>
+      <text x="1950" y="38" fill="#b45309" font-size="12" font-weight="800">Auto Failover: 3.7-flash ➔ 3.1-lite (&lt; 50ms)</text>
     </g>
 
     <!-- Row 4: Cartesia TTS -->
-    <g transform="translate(25, 246)">
-      <rect width="1680" height="44" rx="6" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
-      <text x="20" y="27" fill="#0284c7" font-size="11" font-weight="800">Cartesia Sonic-3 Voice</text>
-      <text x="260" y="27" fill="#0284c7" font-size="11" font-weight="600">REST HTTPS Streaming</text>
-      <text x="490" y="27" fill="#0f172a" font-size="10" font-family="monospace" font-weight="600">api.cartesia.ai/tts/bytes</text>
-      <text x="820" y="27" fill="#475569" font-size="10">{ model_id: 'sonic-3', voice: { id: voiceId }, transcript }</text>
-      <text x="1220" y="27" fill="#16a34a" font-size="10" font-weight="600">Binary audio/mpeg (cached to /tmp/cartesia_audio)</text>
-      <text x="1550" y="27" fill="#64748b" font-size="10">Automatic fallback to Amazon Polly (Lucia)</text>
+    <g transform="translate(24, 340)">
+      <rect width="2192" height="66" rx="8" fill="#ffffff" stroke="#f1f5f9" stroke-width="1.2"/>
+      <text x="24" y="38" fill="#0284c7" font-size="13" font-weight="800">Cartesia Sonic-3 Voice</text>
+      <text x="320" y="38" fill="#0284c7" font-size="12" font-weight="600">REST HTTPS Streaming</text>
+      <text x="620" y="38" fill="#0f172a" font-size="12" font-family="monospace" font-weight="600">api.cartesia.ai/tts/bytes</text>
+      <text x="1050" y="38" fill="#475569" font-size="11.5">{ model_id: 'sonic-3', voice: { id: voiceId }, transcript }</text>
+      <text x="1550" y="38" fill="#15803d" font-size="12" font-weight="600">Binary audio/mpeg (cached to /tmp/cartesia_audio)</text>
+      <text x="1950" y="38" fill="#64748b" font-size="11.5">Automatic fallback to Amazon Polly (Lucia)</text>
     </g>
 
     <!-- Row 5: Google Workspace OAuth -->
-    <g transform="translate(25, 296)">
-      <rect width="1680" height="44" rx="6" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
-      <text x="20" y="27" fill="#1d4ed8" font-size="11" font-weight="800">Google Workspace (OAuth)</text>
-      <text x="260" y="27" fill="#2563eb" font-size="11" font-weight="600">OAuth2 Bearer REST APIs</text>
-      <text x="490" y="27" fill="#0f172a" font-size="10" font-family="monospace" font-weight="600">googleapis.com (gmail/calendar)</text>
-      <text x="820" y="27" fill="#475569" font-size="10">Bearer Token + query params { q: 'is:unread', event: Event }</text>
-      <text x="1220" y="27" fill="#1d4ed8" font-size="10">Structured JSON: threads, messages, calendar events</text>
-      <text x="1550" y="27" fill="#16a34a" font-size="10" font-weight="600">Seamless automatic refresh token cycle</text>
+    <g transform="translate(24, 414)">
+      <rect width="2192" height="66" rx="8" fill="#ffffff" stroke="#f1f5f9" stroke-width="1.2"/>
+      <text x="24" y="38" fill="#1d4ed8" font-size="13" font-weight="800">Google Workspace (OAuth)</text>
+      <text x="320" y="38" fill="#2563eb" font-size="12" font-weight="600">OAuth2 Bearer REST APIs</text>
+      <text x="620" y="38" fill="#0f172a" font-size="12" font-family="monospace" font-weight="600">googleapis.com (gmail/calendar)</text>
+      <text x="1050" y="38" fill="#475569" font-size="11.5">Bearer Token + query params { q: 'is:unread', event: Event }</text>
+      <text x="1550" y="38" fill="#1d4ed8" font-size="12">Structured JSON: threads, messages, calendar events</text>
+      <text x="1950" y="38" fill="#15803d" font-size="12" font-weight="700">Seamless automatic refresh token cycle</text>
     </g>
   </g>
 </svg>
