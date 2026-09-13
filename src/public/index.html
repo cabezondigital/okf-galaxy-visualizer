@@ -208,6 +208,98 @@
       transition: background 0.18s;
     }
     .tax-item:hover { background: rgba(56, 189, 248, 0.12); color: #fff; }
+    .tax-color-dot {
+      width: 11px;
+      height: 11px;
+      min-width: 11px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+      transition: transform 0.18s ease;
+    }
+    .tax-item:hover .tax-color-dot {
+      transform: scale(1.35);
+    }
+    .tax-color-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 5px;
+      letter-spacing: 0.5px;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+    .tax-locate-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #cbd5e1;
+      font-size: 0.75rem;
+      padding: 2px 7px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .tax-locate-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
+      border-color: #38bdf8;
+      color: #fff;
+      transform: scale(1.15);
+    }
+
+    /* Bottom Chromatic Legend Bar */
+    .bottom-chromatic-legend {
+      position: absolute;
+      bottom: 78px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(6, 10, 20, 0.85);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 30px;
+      padding: 6px 18px;
+      z-index: 25;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.75);
+      pointer-events: auto;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 90vw;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    body.hud-hidden .bottom-chromatic-legend {
+      display: none !important;
+    }
+    .legend-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.73rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 14px;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+    .legend-chip:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      min-width: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
     .tax-name { flex: 1; }
     .tax-num {
       font-size: 0.72rem;
@@ -633,6 +725,9 @@
 
   <div id="main-container">
     <div id="3d-graph"></div>
+
+    <!-- PERSISTENT CHROMATIC GALAXY LEGEND -->
+    <div class="bottom-chromatic-legend" id="bottom-chromatic-legend"></div>
 
     <!-- SEMITRANSPARENT MINI-SPHERE ROTATION & SUBTLE ZOOM HUD -->
     <div class="mini-sphere-hud" id="mini-sphere-hud">
@@ -1241,43 +1336,115 @@
       document.getElementById("stat-total-edges").innerText = filteredLinks.length;
     }
 
+    // Dynamic Category Colors and Labels Resolution
+    function getGroupColor(g, nodes) {
+      const lowerG = (g || '').toLowerCase();
+      // 1. Check root node color
+      const rootNode = (nodes || []).find(n => n.id === `root_${lowerG}` || n.id === `root_${g}`);
+      if (rootNode && rootNode.color) return rootNode.color;
+
+      // 2. Check member node color
+      const member = (nodes || []).find(n => (n.group || '').toLowerCase() === lowerG && n.color);
+      if (member && member.color) return member.color;
+
+      // 3. Curated chromatic palette
+      const canon = {
+        contacts: '#fbbf24',
+        contact: '#fbbf24',
+        events: '#38bdf8',
+        event: '#38bdf8',
+        emails: '#c084fc',
+        email: '#c084fc',
+        photos: '#f43f5e',
+        photo: '#f43f5e',
+        learnings: '#10b981',
+        learning: '#10b981',
+        projects: '#6366f1',
+        project: '#6366f1',
+        tools: '#06b6d4',
+        tool: '#06b6d4',
+        expenses: '#eab308',
+        expense: '#eab308',
+        concepts: '#38bdf8',
+        concept: '#38bdf8',
+        architecture: '#c084fc',
+        research: '#f43f5e',
+        venue: '#06b6d4',
+        entity: '#fbbf24',
+        otros: '#94a3b8'
+      };
+      return canon[lowerG] || '#38bdf8';
+    }
+
+    function getGroupLabel(g) {
+      const lowerG = (g || '').toLowerCase();
+      const labels = {
+        contacts: 'Contactos VIP',
+        contact: 'Contactos VIP',
+        events: 'Eventos y Agenda',
+        event: 'Eventos y Agenda',
+        emails: 'Correos Indexados',
+        email: 'Correos Indexados',
+        photos: 'Looks y Estilismo',
+        photo: 'Looks y Estilismo',
+        learnings: 'OKF Aprendizajes',
+        learning: 'OKF Aprendizajes',
+        projects: 'Proyectos Estratégicos',
+        project: 'Proyectos Estratégicos',
+        tools: 'Herramientas (Tools)',
+        tool: 'Herramientas (Tools)',
+        expenses: 'Gastos y Facturas',
+        expense: 'Gastos y Facturas',
+        concepts: 'Conceptos Clave',
+        concept: 'Conceptos Clave',
+        architecture: 'Arquitectura',
+        research: 'Investigación',
+        venue: 'Sedes y Espacios',
+        entity: 'Entidades',
+        otros: 'Otras Entidades'
+      };
+      return labels[lowerG] || (g.charAt(0).toUpperCase() + g.slice(1));
+    }
+
+    // 🎯 Locate cluster and fly 3D camera
+    function locateGroup(group, e) {
+      if (e) e.stopPropagation();
+      if (!graphData || !graphData.nodes) return;
+
+      activeLayers[group] = true;
+      updateFilteredGraph();
+      renderTaxonomyMenu(graphData);
+
+      const lowerG = group.toLowerCase();
+      const rootNode = graphData.nodes.find(n => n.id === `root_${lowerG}` || n.id === `root_${group}`) ||
+                       graphData.nodes.find(n => (n.group || '').toLowerCase() === lowerG && n.isRoot) ||
+                       graphData.nodes.find(n => (n.group || '').toLowerCase() === lowerG);
+
+      if (rootNode) {
+        focusNode(rootNode);
+        const color = getGroupColor(group, graphData.nodes);
+        const label = getGroupLabel(group);
+        showToast(`🎯 Enfocando clúster: ${label.toUpperCase()} (${color})`);
+      } else {
+        showToast(`⚠️ No se encontraron nodos para: ${group}`);
+      }
+    }
+
     function renderTaxonomyMenu(data) {
       const groupCounts = {};
-      data.nodes.forEach(n => {
-        const g = n.group || "otros";
+      (data.nodes || []).forEach(n => {
+        const g = n.group || 'otros';
         if (activeLayers[g] === undefined) activeLayers[g] = true;
         groupCounts[g] = (groupCounts[g] || 0) + 1;
       });
 
-      const groupLabels = {
-        contact: "Contactos VIP",
-        event: "Eventos y Agenda",
-        email: "Correos Indexados",
-        photo: "Looks y Estilismo",
-        learning: "OKF Aprendizajes",
-        project: "Proyectos Estratégicos",
-        venue: "Sedes y Espacios",
-        entity: "Entidades",
-        otros: "Otras Entidades"
-      };
+      const menu = document.getElementById('taxonomy-menu');
+      const countBadge = document.getElementById('tax-count');
+      const legendBar = document.getElementById('bottom-chromatic-legend');
 
-      const groupColors = {
-        contact: "#fbbf24",
-        event: "#38bdf8",
-        email: "#c084fc",
-        photo: "#f43f5e",
-        learning: "#22c55e",
-        project: "#f97316",
-        venue: "#06b6d4",
-        entity: "#eab308",
-        otros: "#94a3b8"
-      };
-
-      const menu = document.getElementById("taxonomy-menu");
-      const countBadge = document.getElementById("tax-count");
       const groups = Object.keys(groupCounts);
       const activeCount = groups.filter(g => activeLayers[g]).length;
-      countBadge.innerText = activeCount + "/" + groups.length;
+      if (countBadge) countBadge.innerText = activeCount + '/' + groups.length;
 
       let menuHtml = '<div style="display:flex; justify-content:space-between; padding:4px 14px; font-size:0.7rem; color:var(--text-muted);">' +
         '<span style="cursor:pointer; text-decoration:underline;" onclick="setAllLayers(true)">Activar todas</span>' +
@@ -1285,21 +1452,33 @@
       '</div>' +
       '<div class="tax-divider"></div>';
 
+      let legendHtml = '';
+
       groups.forEach(g => {
-        const color = groupColors[g] || "#94a3b8";
-        const label = groupLabels[g] || (g.charAt(0).toUpperCase() + g.slice(1));
+        const color = getGroupColor(g, data.nodes);
+        const label = getGroupLabel(g);
         const count = groupCounts[g];
         const isChecked = activeLayers[g] !== false;
 
-        menuHtml += '<div class="tax-item" onclick="toggleLayer(\'' + g + '\', event)">' +
-          '<span class="dot" style="background: ' + color + '; box-shadow: 0 0 8px ' + color + '"></span>' +
-          '<span class="tax-name">' + label + '</span>' +
-          '<span class="tax-num">' + count + '</span>' +
-          '<span class="layer-check ' + (isChecked ? 'checked' : '') + '">' + (isChecked ? '✓' : '') + '</span>' +
-        '</div>';
+        menuHtml += `<div class="tax-item" onclick="toggleLayer('${g}', event)">` +
+          `<span class="tax-color-dot" style="background: ${color}; box-shadow: 0 0 10px ${color}, inset 0 0 2px #fff;"></span>` +
+          `<span class="tax-name">${label}</span>` +
+          `<span class="tax-color-badge" style="background: ${color}22; border: 1px solid ${color}66; color: ${color};">${color}</span>` +
+          `<span class="tax-num">${count}</span>` +
+          `<button class="tax-locate-btn" onclick="locateGroup('${g}', event)" title="Localizar y enfocar este clúster en el espacio 3D">🎯</button>` +
+          `<span class="layer-check ${isChecked ? 'checked' : ''}">${isChecked ? '✓' : ''}</span>` +
+        `</div>`;
+
+        // Legend chip for bottom bar
+        legendHtml += `<div class="legend-chip" onclick="locateGroup('${g}', event)" title="Click para volar y enfocar ${label}">` +
+          `<span class="legend-dot" style="background: ${color}; box-shadow: 0 0 8px ${color};"></span>` +
+          `<span>${label}</span>` +
+          `<span style="color: ${color}; font-weight: 600; font-size: 0.68rem;">(${count})</span>` +
+        `</div>`;
       });
 
-      menu.innerHTML = menuHtml;
+      if (menu) menu.innerHTML = menuHtml;
+      if (legendBar) legendBar.innerHTML = legendHtml;
     }
 
     async function initGraph() {
@@ -1328,12 +1507,14 @@
           learnings: '#10b981',
           concept: '#38bdf8',
           concepts: '#38bdf8',
-          project: '#fbbf24',
-          projects: '#fbbf24',
+          project: '#6366f1',
+          projects: '#6366f1',
           architecture: '#c084fc',
           research: '#f43f5e',
-          tool: '#10b981',
-          tools: '#10b981'
+          tool: '#06b6d4',
+          tools: '#06b6d4',
+          expense: '#eab308',
+          expenses: '#eab308'
         };
 
         // Calcular grado / peso y potencia para cada nodo
