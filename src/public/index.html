@@ -486,6 +486,25 @@
     .auto-rotate-pill:hover { border-color: rgba(56, 189, 248, 0.4); color: #fff; }
     .auto-rotate-pill.active { color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.08); }
 
+    /* Particle Density Pill (High/Low) */
+    .particle-density-pill {
+      background: rgba(10, 15, 26, 0.5);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .particle-density-pill:hover { border-color: rgba(56, 189, 248, 0.4); color: #fff; }
+    .particle-density-pill.high { color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.08); }
+
     /* Inspection Drawer */
     #drawer {
       width: 390px;
@@ -747,6 +766,9 @@
         <div id="auto-rotate-pill" class="auto-rotate-pill active" onclick="toggleRotate()">
           <span>✦</span> Auto-Rotate
         </div>
+        <div id="particle-density-pill" class="particle-density-pill" onclick="toggleParticleDensity()" title="Toggle particle density: High (1/3 links) or Low (1/10 links)">
+          <span>⚡</span> <span id="particle-density-label">Particles: Low</span>
+        </div>
       </div>
 
       <!-- Toggle HUD Button -->
@@ -788,6 +810,14 @@
 
     let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '1.0');
     let orbitalSpeedMultiplier = parseFloat(localStorage.getItem('okf_orbital_speed') || '1.0');
+    let particleDensityHigh = localStorage.getItem('okf_particle_density') === 'high';
+    // Initialize particle density pill state on load
+    requestAnimationFrame(() => {
+      const pdPill = document.getElementById('particle-density-pill');
+      const pdLabel = document.getElementById('particle-density-label');
+      if (pdPill) pdPill.classList.toggle('high', particleDensityHigh);
+      if (pdLabel) pdLabel.textContent = particleDensityHigh ? 'Particles: High' : 'Particles: Low';
+    });
 
     function onOrbitalSpeedChange(val) {
       orbitalSpeedMultiplier = parseFloat(val);
@@ -1109,10 +1139,22 @@
       gradient.addColorStop(0, '#ffffff');
       gradient.addColorStop(0.2, colorHex);
       gradient.addColorStop(0.55, colorHex);
-      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+      // Extraemos RGB para desvanecer al mismo color pero con alpha 0 (evita bordes negros por interpolación premultiplicada)
+      let r = 255, g = 255, b = 255;
+      if (colorHex.startsWith('#')) {
+        const hex = colorHex.replace('#', '');
+        if (hex.length === 6) {
+          r = parseInt(hex.substring(0, 2), 16);
+          g = parseInt(hex.substring(2, 4), 16);
+          b = parseInt(hex.substring(4, 6), 16);
+        }
+      }
+      gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
 
+      ctx.beginPath();
+      ctx.arc(64, 64, 64, 0, Math.PI * 2);
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 128, 128);
+      ctx.fill();
 
       const texture = new THREE.CanvasTexture(canvas);
       texture.needsUpdate = true;
@@ -1123,7 +1165,10 @@
 
     function getGlowTexture(colorHex) {
       if (!GLOW_TEXTURES[colorHex]) {
-        GLOW_TEXTURES[colorHex] = buildGlowTexture(colorHex);
+        const tex = buildGlowTexture(colorHex);
+        tex.premultiplyAlpha = false;
+        tex.needsUpdate = true;
+        GLOW_TEXTURES[colorHex] = tex;
       }
       return GLOW_TEXTURES[colorHex];
     }
@@ -1152,7 +1197,7 @@
       ctx.fillText(text, 110, 21);
 
       const texture = new THREE.CanvasTexture(canvas);
-      const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.92 });
+      const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.92, depthWrite: false, blending: THREE.NormalBlending });
       const sprite = new THREE.Sprite(spriteMaterial);
       sprite.scale.set(11.5, 2.2, 1);
       return sprite;
@@ -1192,7 +1237,8 @@
         map: texture,
         transparent: true,
         opacity: 0.85,
-        depthWrite: false
+        depthWrite: false,
+        blending: THREE.NormalBlending
       });
       const sprite = new THREE.Sprite(spriteMaterial);
       sprite.scale.set(18, 3.5, 1);
@@ -1313,46 +1359,44 @@
       document.getElementById("stat-total-edges").innerText = filteredLinks.length;
     }
 
-    // Canonical Category Colors and Labels - Single Source of Truth
-    const CANON_GROUP_COLORS = {
-      contacts: '#fbbf24',
-      contact: '#fbbf24',
-      events: '#38bdf8',
-      event: '#38bdf8',
-      emails: '#c084fc',
-      email: '#c084fc',
-      photos: '#f43f5e',
-      photo: '#f43f5e',
-      learnings: '#10b981',
-      learning: '#10b981',
-      projects: '#6366f1',
-      project: '#6366f1',
-      tools: '#06b6d4',
-      tool: '#06b6d4',
-      expenses: '#eab308',
-      expense: '#eab308',
-      concepts: '#38bdf8',
-      concept: '#38bdf8',
-      architecture: '#c084fc',
-      research: '#f43f5e',
-      venue: '#06b6d4',
-      entity: '#fbbf24',
-      otros: '#94a3b8'
-    };
-
+    // Dynamic Category Colors and Labels Resolution
     function getGroupColor(g, nodes) {
       const lowerG = (g || '').toLowerCase();
-      // 1. Prioridad absoluta a la paleta canónica para que categorías y nodos coincidan siempre al 100%
-      if (CANON_GROUP_COLORS[lowerG]) return CANON_GROUP_COLORS[lowerG];
-
-      // 2. Check root node color si fue definido dinámicamente
+      // 1. Check root node color
       const rootNode = (nodes || []).find(n => n.id === `root_${lowerG}` || n.id === `root_${g}`);
       if (rootNode && rootNode.color) return rootNode.color;
 
+      // 2. Check member node color
       const member = (nodes || []).find(n => (n.group || '').toLowerCase() === lowerG && n.color);
       if (member && member.color) return member.color;
 
-      return '#38bdf8';
+      // 3. Curated chromatic palette
+      const canon = {
+        contacts: '#fbbf24',
+        contact: '#fbbf24',
+        events: '#38bdf8',
+        event: '#38bdf8',
+        emails: '#c084fc',
+        email: '#c084fc',
+        photos: '#f43f5e',
+        photo: '#f43f5e',
+        learnings: '#10b981',
+        learning: '#10b981',
+        projects: '#6366f1',
+        project: '#6366f1',
+        tools: '#06b6d4',
+        tool: '#06b6d4',
+        expenses: '#eab308',
+        expense: '#eab308',
+        concepts: '#38bdf8',
+        concept: '#38bdf8',
+        architecture: '#c084fc',
+        research: '#f43f5e',
+        venue: '#06b6d4',
+        entity: '#fbbf24',
+        otros: '#94a3b8'
+      };
+      return canon[lowerG] || '#38bdf8';
     }
 
     function getGroupLabel(g) {
@@ -1458,6 +1502,17 @@
         let res = await fetch('/api/okf-graph').catch(() => null);
         if (!res || !res.ok) res = await fetch('/api/graph');
         const data = await res.json();
+        // Distribuir los nodos aleatoriamente al inicio para evitar la aglomeración fea (cutre) en el centro 0,0,0
+        (data.nodes || []).forEach(n => {
+          if (!n.x && !n.y && !n.z) {
+             const r = 200 + Math.random() * 200;
+             const theta = Math.random() * 2 * Math.PI;
+             const phi = Math.acos(2 * Math.random() - 1);
+             n.x = r * Math.sin(phi) * Math.cos(theta);
+             n.y = r * Math.sin(phi) * Math.sin(theta);
+             n.z = r * Math.cos(phi);
+          }
+        });
         graphData = data;
         console.log('Graph data received:', data.stats);
 
@@ -1485,6 +1540,9 @@
           research: '#f43f5e',
           tool: '#06b6d4',
           tools: '#06b6d4',
+          invoice: '#f59e0b',
+          invoices: '#f59e0b',
+          odoo_invoice: '#f59e0b',
           expense: '#eab308',
           expenses: '#eab308'
         };
@@ -1517,8 +1575,12 @@
           .graphData({ nodes: data.nodes, links: formattedLinks })
           .backgroundColor('#000000')
           .nodeId('id')
+          .nodeVisibility(node => {
+            if (searchActive) return matchingNodeIds.has(node.id);
+            return true;
+          })
           .nodeColor(node => {
-            const baseColor = getGroupColor(node.group, graphData ? graphData.nodes : []);
+            const baseColor = colorMap[node.group] || node.color || '#38bdf8';
             if (!searchActive) return baseColor;
             if (node.__searchMatch) return '#ffffff'; // Destello blanco incandescente para coincidencias
             if (node.__searchConnected) return baseColor; // Conexiones en su color normal
@@ -1526,7 +1588,7 @@
           })
           .nodeThreeObject(node => {
             const group = new THREE.Group();
-            const nodeColor = getGroupColor(node.group, graphData ? graphData.nodes : []);
+            const nodeColor = colorMap[node.group] || node.color || '#38bdf8';
             const isRoot = !!node.isRoot;
             const degree = nodeDegreeMap.get(node.id) || 1;
 
@@ -1540,7 +1602,7 @@
                 color: 0xffffff,
                 transparent: true,
                 opacity: 0.95
-              });
+              , depthWrite: false });
               const innerCoreMesh = new THREE.Mesh(innerCoreGeo, innerCoreMat);
               group.add(innerCoreMesh);
 
@@ -1551,7 +1613,7 @@
                 transparent: true,
                 opacity: 0.65,
                 blending: THREE.AdditiveBlending
-              });
+              , depthWrite: false });
               const plasmaMesh = new THREE.Mesh(plasmaGeo, plasmaMat);
               group.add(plasmaMesh);
 
@@ -1562,7 +1624,7 @@
                 transparent: true,
                 blending: THREE.AdditiveBlending,
                 opacity: 0.88
-              });
+              , depthWrite: false });
               const coronaSprite = new THREE.Sprite(coronaMat);
               coronaSprite.scale.set(13, 13, 1);
               group.add(coronaSprite);
@@ -1573,16 +1635,14 @@
                 transparent: true,
                 blending: THREE.AdditiveBlending,
                 opacity: 0.38
-              });
+              , depthWrite: false });
               const flareSprite = new THREE.Sprite(flareMat);
               flareSprite.scale.set(24, 24, 1);
               node.__stellarFlare = flareSprite;
               group.add(flareSprite);
 
-              // 5. Etiqueta del Sol (Garantiza correspondencia con el nombre en Categorías)
-              const groupLabelClean = getGroupLabel(node.group || node.id.replace('root_', ''));
-              const sunLabelText = `🌟 ${groupLabelClean.toUpperCase()}`;
-              const rootSprite = createRootLabelSprite(sunLabelText, nodeColor);
+              // 5. Etiqueta del Sol
+              const rootSprite = createRootLabelSprite(node.label, nodeColor);
               rootSprite.position.set(0, 5.2, 0);
               node.__labelSprite = rootSprite;
               group.add(rootSprite);
@@ -1615,7 +1675,7 @@
                 transparent: true,
                 blending: THREE.AdditiveBlending,
                 opacity: 0.25 + Math.min(powerLevel, 5) * 0.02
-              });
+              , depthWrite: false });
               const glowSprite = new THREE.Sprite(glowMat);
               const glowScale = baseSize * 1.6;
               glowSprite.scale.set(glowScale, glowScale, 1);
@@ -1649,14 +1709,16 @@
           })
           .linkResolution(6)
           // Enlaces Duros (Troncales Padre) vs Enlaces de Relación (Wikilinks claramente visibles)
-          .linkColor(link => {
+          .linkVisibility(link => {
             if (searchActive) {
               const sId = (link.source && link.source.id) || link.source;
               const tId = (link.target && link.target.id) || link.target;
-              const isRelevant = matchingNodeIds.has(sId) && matchingNodeIds.has(tId);
-              if (!isRelevant) return 'rgba(0, 0, 0, 0)';
-              return '#38bdf8';
+              return matchingNodeIds.has(sId) && matchingNodeIds.has(tId);
             }
+            return true;
+          })
+          .linkColor(link => {
+            if (searchActive) return '#38bdf8';
             const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
             return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
           })
@@ -1668,7 +1730,17 @@
               const tId = (link.target && link.target.id) || link.target;
               if (!matchingNodeIds.has(sId) || !matchingNodeIds.has(tId)) return 0;
             }
-            if (link.isStructural) return 1;
+            if (link.isStructural) {
+              // Densidad de partículas: High = 1 de cada 3, Low = 1 de cada 10
+              const divisor = particleDensityHigh ? 3 : 10;
+              if (graphData.nodes.length > 30) {
+                 const tIdStr = String((link.target && link.target.id) || link.target);
+                 let hash = 0;
+                 for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % divisor;
+                 return (hash === 0) ? 2 : 0;
+              }
+              return 2;
+            }
             if (focusedNodeId && (link.source.id === focusedNodeId || link.target.id === focusedNodeId)) return 1;
             return 0;
           })
@@ -1919,7 +1991,7 @@
         coreCtx.fillText(data.stats.totalNodes + ' Nodes • ' + data.edges.length + ' Links', 256, 145);
 
         const coreTexture = new THREE.CanvasTexture(coreCanvas);
-        const coreSpriteMat = new THREE.SpriteMaterial({ map: coreTexture, transparent: true, opacity: 0.7 });
+        const coreSpriteMat = new THREE.SpriteMaterial({ map: coreTexture, transparent: true, opacity: 0.7 , depthWrite: false });
         const centerSprite = new THREE.Sprite(coreSpriteMat);
         centerSprite.scale.set(100, 50, 1);
         scene.add(centerSprite);
@@ -2073,11 +2145,18 @@
           continue;
         }
         if (searchActive && !n.__searchMatch) {
-          if (sprite.visible) {
-            sprite.visible = false;
-            sprite.material.opacity = 0;
+          const isRelated = matchingNodeIds.has(n.id);
+          if (!isRelated) {
+            if (sprite.visible) {
+              sprite.visible = false;
+              sprite.material.opacity = 0;
+            }
+            continue;
+          } else {
+             // Keep it visible but slightly dimmed as set in onSearch
+             if (!sprite.visible) sprite.visible = true;
+             continue;
           }
-          continue;
         }
 
         const dx = (n.x || 0) - camPos.x;
@@ -2264,13 +2343,45 @@
       if (pill) pill.classList.toggle('active', autoRotate);
     }
 
+    function toggleParticleDensity() {
+      particleDensityHigh = !particleDensityHigh;
+      localStorage.setItem('okf_particle_density', particleDensityHigh ? 'high' : 'low');
+      const pill = document.getElementById('particle-density-pill');
+      const label = document.getElementById('particle-density-label');
+      if (pill) pill.classList.toggle('high', particleDensityHigh);
+      if (label) label.textContent = particleDensityHigh ? 'Particles: High' : 'Particles: Low';
+      // Force re-render of particles
+      if (graphInstance) {
+        const divisor = particleDensityHigh ? 3 : 10;
+        graphInstance.linkDirectionalParticles(link => {
+          if (orbitalSpeedMultiplier === 0) return 0;
+          if (link.isStructural) {
+            if (graphData.nodes.length > 30) {
+              const tIdStr = String((link.target && link.target.id) || link.target);
+              let hash = 0;
+              for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % divisor;
+              return (hash === 0) ? 2 : 0;
+            }
+            return 2;
+          }
+          if (focusedNodeId && (link.source.id === focusedNodeId || link.target.id === focusedNodeId)) return 1;
+          return 0;
+        });
+      }
+    }
+
     function resetCamera() {
       focusedNodeId = null;
       targetLookAt.set(0, 0, 0);
       targetRadius = 660;
       targetPhi = Math.PI * 0.5;
       closeDrawer();
-      clearSearchSpotlight();
+      const searchInput = document.getElementById('search-input');
+      if (!searchInput || !searchInput.value.trim()) {
+        clearSearchSpotlight();
+      } else {
+        onSearch(searchInput.value);
+      }
     }
 
     function focusNode(node) {
@@ -2342,12 +2453,10 @@
     function openDrawer(node) {
       const drawer = document.getElementById('drawer');
       const tagEl = document.getElementById('drawer-group');
-      const gColor = getGroupColor(node.group, graphData ? graphData.nodes : []);
-      const gLabel = getGroupLabel(node.group);
-      tagEl.innerText = gLabel;
-      tagEl.style.backgroundColor = gColor + '22';
-      tagEl.style.color = gColor;
-      tagEl.style.border = '1px solid ' + gColor;
+      tagEl.innerText = node.group;
+      tagEl.style.backgroundColor = node.color + '22';
+      tagEl.style.color = node.color;
+      tagEl.style.border = '1px solid ' + node.color;
 
       document.getElementById('drawer-title').innerText = node.label;
       
@@ -2414,9 +2523,50 @@
         });
       }
       if (graphInstance) {
-        graphInstance.nodeColor(graphInstance.nodeColor());
-        graphInstance.linkColor(graphInstance.linkColor());
-        graphInstance.linkDirectionalParticles(graphInstance.linkDirectionalParticles());
+        graphInstance.nodeVisibility(node => {
+          if (searchActive) return matchingNodeIds.has(node.id);
+          return true;
+        });
+        graphInstance.linkVisibility(link => {
+          if (searchActive) {
+            const sId = (link.source && link.source.id) || link.source;
+            const tId = (link.target && link.target.id) || link.target;
+            return matchingNodeIds.has(sId) && matchingNodeIds.has(tId);
+          }
+          return true;
+        });
+        graphInstance.nodeColor(node => {
+          if (searchActive) {
+            if (node.__searchMatch) return '#38bdf8';
+            if (matchingNodeIds.has(node.id)) return 'rgba(56, 189, 248, 0.4)';
+            return 'rgba(30, 41, 59, 0.18)';
+          }
+          const colorMap = { contacts: '#fbbf24', events: '#38bdf8', photos: '#f43f5e', learnings: '#10b981', emails: '#c084fc', projects: '#6366f1', tools: '#06b6d4', invoices: '#f59e0b' };
+          return colorMap[node.group] || node.color || '#38bdf8';
+        });
+        graphInstance.linkColor(link => {
+          if (searchActive) return '#38bdf8';
+          const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
+          return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
+        });
+        graphInstance.linkDirectionalParticles(link => {
+          if (orbitalSpeedMultiplier === 0) return 0;
+          if (searchActive) {
+            const sId = (link.source && link.source.id) || link.source;
+            const tId = (link.target && link.target.id) || link.target;
+            if (!matchingNodeIds.has(sId) || !matchingNodeIds.has(tId)) return 0;
+          }
+          if (link.isStructural) {
+            if (graphData.nodes.length > 30) {
+               const tIdStr = String((link.target && link.target.id) || link.target);
+               let hash = 0;
+               for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % 10;
+               if (hash !== 0) return 0;
+            }
+            return 2;
+          }
+          return 0;
+        });
       }
     }
 
@@ -2451,27 +2601,39 @@
         }
       });
 
-      // 2. Incluir únicamente relaciones semánticas directas (NO propagar por troncales que arrastran toda la categoría)
+      // 2. Mantener visibles los nodos raíz para que no queden "puntos flotando"
+      matchingNodeIds.add("root_cortex");
+      directMatches.forEach(n => {
+         if (n.group) {
+             matchingNodeIds.add(`root_${n.group}`);
+             if (n.group.endsWith('s')) matchingNodeIds.add(`root_${n.group.slice(0, -1)}`);
+             else matchingNodeIds.add(`root_${n.group}s`);
+         }
+      });
+
+      // 3. Incluir relaciones directas entre nodos coincidentes
       edges.forEach(e => {
         const sId = (e.source && e.source.id) || e.source;
         const tId = (e.target && e.target.id) || e.target;
-        if (directMatchSet.has(sId) && (!tId.startsWith('root_') || directMatchSet.has(tId))) {
-          matchingNodeIds.add(tId);
+        
+        // Always include the link if either end is a direct match, UNLESS the other end is a root node that wasn't added above
+        if (directMatchSet.has(sId)) {
+          if (!tId.startsWith('root_') || matchingNodeIds.has(tId)) matchingNodeIds.add(tId);
         }
-        if (directMatchSet.has(tId) && (!sId.startsWith('root_') || directMatchSet.has(sId))) {
-          matchingNodeIds.add(sId);
+        if (directMatchSet.has(tId)) {
+          if (!sId.startsWith('root_') || matchingNodeIds.has(sId)) matchingNodeIds.add(sId);
         }
       });
 
+      console.log('Search for:', q);
+      console.log('matchingNodeIds contains:', Array.from(matchingNodeIds));
+      
       // 3. OCULTAR TODOS LOS NODOS Y SUBNODOS SIN RELACIÓN
       nodes.forEach(n => {
         const isRelated = matchingNodeIds.has(n.id);
         n.__searchConnected = isRelated && !n.__searchMatch;
 
-        // Ocultar o mostrar el objeto 3D en la escena Three.js
-        if (n.__threeObj) {
-          n.__threeObj.visible = isRelated;
-        }
+        // El motor nativo manejará la visibilidad del nodo (n.__threeObj)
 
         if (n.__labelSprite) {
           if (n.__searchMatch) {
@@ -2508,9 +2670,50 @@
 
       // 6. Refrescar colores de links y partículas
       if (graphInstance) {
-        graphInstance.nodeColor(graphInstance.nodeColor());
-        graphInstance.linkColor(graphInstance.linkColor());
-        graphInstance.linkDirectionalParticles(graphInstance.linkDirectionalParticles());
+        graphInstance.nodeVisibility(node => {
+          if (searchActive) return matchingNodeIds.has(node.id);
+          return true;
+        });
+        graphInstance.linkVisibility(link => {
+          if (searchActive) {
+            const sId = (link.source && link.source.id) || link.source;
+            const tId = (link.target && link.target.id) || link.target;
+            return matchingNodeIds.has(sId) && matchingNodeIds.has(tId);
+          }
+          return true;
+        });
+        graphInstance.nodeColor(node => {
+          if (searchActive) {
+            if (node.__searchMatch) return '#38bdf8';
+            if (matchingNodeIds.has(node.id)) return 'rgba(56, 189, 248, 0.4)';
+            return 'rgba(30, 41, 59, 0.18)';
+          }
+          const colorMap = { contacts: '#fbbf24', events: '#38bdf8', photos: '#f43f5e', learnings: '#10b981', emails: '#c084fc', projects: '#6366f1', tools: '#06b6d4', invoices: '#f59e0b' };
+          return colorMap[node.group] || node.color || '#38bdf8';
+        });
+        graphInstance.linkColor(link => {
+          if (searchActive) return '#38bdf8';
+          const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
+          return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
+        });
+        graphInstance.linkDirectionalParticles(link => {
+          if (orbitalSpeedMultiplier === 0) return 0;
+          if (searchActive) {
+            const sId = (link.source && link.source.id) || link.source;
+            const tId = (link.target && link.target.id) || link.target;
+            if (!matchingNodeIds.has(sId) || !matchingNodeIds.has(tId)) return 0;
+          }
+          if (link.isStructural) {
+            if (graphData.nodes.length > 30) {
+               const tIdStr = String((link.target && link.target.id) || link.target);
+               let hash = 0;
+               for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % 10;
+               if (hash !== 0) return 0;
+            }
+            return 2;
+          }
+          return 0;
+        });
       }
     }
 
