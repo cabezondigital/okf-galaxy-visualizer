@@ -2236,10 +2236,9 @@
               node.__glowSprite = glowSprite;
               group.add(glowSprite);
 
-              const labelSprite = createLabelSprite(node.label, nodeColor);
-              labelSprite.position.set(0, baseSize + 2.8, 0);
-              node.__labelSprite = labelSprite;
-              group.add(labelSprite);
+              // 🌟 Nombres bajo demanda (Hover / Clic): la galaxia se ve limpia y ahorra el 90% de memoria
+              node.__baseSize = baseSize;
+              node.__labelSprite = null;
             }
 
             group.scale.set(nodeScaleMultiplier, nodeScaleMultiplier, nodeScaleMultiplier);
@@ -2308,15 +2307,33 @@
               container.style.cursor = node ? 'pointer' : 'grab';
             }
 
-            // Destacar nodo sobrevolado y mostrar su nombre inmediatamente
-            if (node && node.__labelSprite) {
-              node.__labelSprite.visible = true;
-              node.__labelSprite.material.opacity = 1.0;
-              node.__labelSprite.scale.set(22, 4.3, 1);
+            if (node) {
+              // Crear etiqueta bajo demanda si no existe aún
+              if (!node.__labelSprite && node.__threeObj) {
+                const nodeColor = colorMap[node.group] || node.color || '#38bdf8';
+                const baseSize = node.__baseSize || 1.0;
+                const labelSprite = createLabelSprite(node.label, nodeColor);
+                labelSprite.position.set(0, baseSize + 3.0, 0);
+                node.__labelSprite = labelSprite;
+                node.__threeObj.add(labelSprite);
+              }
+              if (node.__labelSprite) {
+                node.__labelSprite.visible = true;
+                node.__labelSprite.material.opacity = 1.0;
+                node.__labelSprite.scale.set(22, 4.3, 1);
+              }
               if (node.__glowSprite) node.__glowSprite.scale.set(5.5, 5.5, 1);
             }
+
             if (prevNode && prevNode !== node && prevNode.__labelSprite) {
-              prevNode.__labelSprite.scale.set(18, 3.5, 1);
+              // Ocultar la etiqueta al retirar el ratón (a menos que sea Sol o esté enfocado/buscado)
+              if (!prevNode.isRoot && prevNode.id !== focusedNodeId && !prevNode.__searchMatch) {
+                prevNode.__labelSprite.visible = false;
+              }
+              if (prevNode.__glowSprite) {
+                const baseSize = prevNode.__baseSize || 1.0;
+                prevNode.__glowSprite.scale.set(baseSize * 1.6, baseSize * 1.6, 1);
+              }
             }
           })
           .onNodeDrag((node, translate) => {
