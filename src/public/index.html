@@ -2271,41 +2271,98 @@
             return true;
           })
           .linkColor(link => {
+            const sId = (link.source && (link.source.id || link.source)) || '';
+            const tId = (link.target && (link.target.id || link.target)) || '';
+            const activeId = hoveredNodeId || focusedNodeId;
+
             if (searchActive) return '#38bdf8';
-            const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
-            return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
+
+            // Iluminar la línea conectada al nodo activo con destello vibrante
+            if (activeId && (sId === activeId || tId === activeId)) {
+              return '#38bdf8';
+            }
+
+            if (link.isStructural) {
+              const alpha = Math.min(0.65, 0.38 * linkBrightness);
+              return 'rgba(255, 255, 255, ' + alpha.toFixed(3) + ')';
+            } else {
+              const alpha = Math.min(0.70, 0.35 * linkBrightness);
+              return 'rgba(56, 189, 248, ' + alpha.toFixed(3) + ')';
+            }
           })
-          .linkWidth(link => link.isStructural ? 1.2 : 0.85)
+          .linkWidth(link => {
+            const sId = (link.source && (link.source.id || link.source)) || '';
+            const tId = (link.target && (link.target.id || link.target)) || '';
+            const activeId = hoveredNodeId || focusedNodeId;
+            if (activeId && (sId === activeId || tId === activeId)) {
+              return 1.8;
+            }
+            return link.isStructural ? 1.2 : 0.85;
+          })
+          // ⚡ CHISPITAS HIPER-INTENSAS: salen disparadas desde el nodo sobrevolado o seleccionado
           .linkDirectionalParticles(link => {
             if (orbitalSpeedMultiplier === 0) return 0;
-            if (searchActive) {
-              const sId = (link.source && link.source.id) || link.source;
-              const tId = (link.target && link.target.id) || link.target;
-              if (!matchingNodeIds.has(sId) || !matchingNodeIds.has(tId)) return 0;
+            const sId = (link.source && (link.source.id || link.source)) || '';
+            const tId = (link.target && (link.target.id || link.target)) || '';
+            const activeId = hoveredNodeId || focusedNodeId;
+
+            if (activeId && (sId === activeId || tId === activeId)) {
+              return 4; // Ráfaga intensa de 4 chispas disparadas a lo largo de las sinapsis
             }
-            if (link.isStructural) {
-              // Densidad de partículas: High = 1 de cada 3, Low = 1 de cada 10
-              const divisor = particleDensityHigh ? 3 : 10;
-              if (graphData.nodes.length > 30) {
-                 const tIdStr = String((link.target && link.target.id) || link.target);
-                 let hash = 0;
-                 for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % divisor;
-                 return (hash === 0) ? 2 : 0;
-              }
+
+            if (searchActive) {
+              if (!matchingNodeIds.has(sId) || !matchingNodeIds.has(tId)) return 0;
               return 2;
             }
-            if (focusedNodeId && (link.source.id === focusedNodeId || link.target.id === focusedNodeId)) return 1;
+
+            if (link.isStructural) {
+              const divisor = particleDensityHigh ? 3 : 10;
+              if (graphData.nodes.length > 30) {
+                 const tIdStr = String(tId);
+                 let hash = 0;
+                 for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % divisor;
+                 return (hash === 0) ? 1 : 0;
+              }
+              return 1;
+            }
+
             return 0;
           })
-          .linkDirectionalParticleSpeed(link => (link.isStructural ? 0.0025 : 0.005) * orbitalSpeedMultiplier)
-          .linkDirectionalParticleWidth(link => link.isStructural ? 2.0 : 1.3)
-          .linkDirectionalParticleColor(link => link.isStructural ? '#ffffff' : '#38bdf8')
+          .linkDirectionalParticleSpeed(link => {
+            const sId = (link.source && (link.source.id || link.source)) || '';
+            const tId = (link.target && (link.target.id || link.target)) || '';
+            const activeId = hoveredNodeId || focusedNodeId;
+            if (activeId && (sId === activeId || tId === activeId)) {
+              return 0.010 * orbitalSpeedMultiplier; // Chispas rápidas y enérgicas
+            }
+            return (link.isStructural ? 0.0025 : 0.005) * orbitalSpeedMultiplier;
+          })
+          .linkDirectionalParticleWidth(link => {
+            const sId = (link.source && (link.source.id || link.source)) || '';
+            const tId = (link.target && (link.target.id || link.target)) || '';
+            const activeId = hoveredNodeId || focusedNodeId;
+            if (activeId && (sId === activeId || tId === activeId)) {
+              return 3.2; // Chispitas gruesas, potentes y brillantes
+            }
+            return link.isStructural ? 1.8 : 1.2;
+          })
+          .linkDirectionalParticleColor(link => {
+            const sId = (link.source && (link.source.id || link.source)) || '';
+            const tId = (link.target && (link.target.id || link.target)) || '';
+            const activeId = hoveredNodeId || focusedNodeId;
+            if (activeId && (sId === activeId || tId === activeId)) {
+              return '#ffffff'; // Destello blanco incandescente de alta energía
+            }
+            return link.isStructural ? '#ffffff' : '#38bdf8';
+          })
           .onNodeClick(node => focusNode(node))
           .onNodeHover((node, prevNode) => {
             const container = document.getElementById('3d-graph');
             if (container) {
               container.style.cursor = node ? 'pointer' : 'grab';
             }
+
+            hoveredNodeId = node ? node.id : null;
 
             if (node) {
               // Crear etiqueta bajo demanda si no existe aún
@@ -2711,6 +2768,7 @@
     const targetLookAt = new THREE.Vector3(0, 0, 0);
     const currentLookAt = new THREE.Vector3(0, 0, 0);
     let focusedNodeId = null;
+    let hoveredNodeId = null;
 
     function applyCameraPosition() {
       if (!graphInstance) return;
