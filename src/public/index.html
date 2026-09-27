@@ -1577,8 +1577,28 @@
     async function initGraph() {
       try {
         console.log('Fetching graph data...');
-        let res = await fetch('/api/okf-graph').catch(() => null);
-        if (!res || !res.ok) res = await fetch('/api/graph');
+        const candidateUrls = [
+          localStorage.getItem('okf_api_endpoint'),
+          'http://localhost:3005/api/okf-graph',
+          'http://localhost:4000/api/graph',
+          '/api/okf-graph',
+          '/api/graph'
+        ].filter(Boolean);
+
+        let res = null;
+        for (const url of candidateUrls) {
+          try {
+            const r = await fetch(url);
+            if (r && r.ok) {
+              res = r;
+              console.log('✅ Connected to OKF Graph API at:', url);
+              break;
+            }
+          } catch(e) {}
+        }
+        if (!res || !res.ok) {
+          throw new Error('No se pudo conectar con ningún servidor OKF (intentado puertos 3005, 4000 y local).');
+        }
         const data = await res.json();
         // Distribuir los nodos aleatoriamente al inicio para evitar la aglomeración fea (cutre) en el centro 0,0,0
         (data.nodes || []).forEach(n => {
