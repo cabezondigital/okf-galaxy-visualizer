@@ -2299,70 +2299,55 @@
             }
             return link.isStructural ? 1.2 : 0.85;
           })
-          // ⚡ CHISPITAS HIPER-INTENSAS: salen disparadas desde el nodo sobrevolado o seleccionado
+          // ⚡ CHISPITAS EXCLUSIVAS: ÚNICA Y EXCLUSIVAMENTE desde el nodo con el ratón encima o seleccionado
           .linkDirectionalParticles(link => {
             if (orbitalSpeedMultiplier === 0) return 0;
+            const activeId = hoveredNodeId || focusedNodeId;
+            if (!activeId) return 0; // CERO chispas por defecto en el fondo
+
             const sId = (link.source && (link.source.id || link.source)) || '';
             const tId = (link.target && (link.target.id || link.target)) || '';
-            const activeId = hoveredNodeId || focusedNodeId;
 
-            if (activeId && (sId === activeId || tId === activeId)) {
-              return 4; // Ráfaga intensa de 4 chispas disparadas a lo largo de las sinapsis
+            // Solo brotan chispas si el enlace conecta con la bola que tiene el ratón encima o está seleccionada
+            if (sId === activeId || tId === activeId) {
+              return 4; // Ráfaga intensa de 4 chispas
             }
 
-            if (searchActive) {
-              if (!matchingNodeIds.has(sId) || !matchingNodeIds.has(tId)) return 0;
-              return 2;
-            }
-
-            if (link.isStructural) {
-              const divisor = particleDensityHigh ? 3 : 10;
-              if (graphData.nodes.length > 30) {
-                 const tIdStr = String(tId);
-                 let hash = 0;
-                 for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % divisor;
-                 return (hash === 0) ? 1 : 0;
-              }
-              return 1;
-            }
-
-            return 0;
+            return 0; // Cero absoluto en cualquier otra parte
           })
           .linkDirectionalParticleSpeed(link => {
-            const sId = (link.source && (link.source.id || link.source)) || '';
-            const tId = (link.target && (link.target.id || link.target)) || '';
-            const activeId = hoveredNodeId || focusedNodeId;
-            if (activeId && (sId === activeId || tId === activeId)) {
-              return 0.010 * orbitalSpeedMultiplier; // Chispas rápidas y enérgicas
-            }
-            return (link.isStructural ? 0.0025 : 0.005) * orbitalSpeedMultiplier;
+            return 0.012 * orbitalSpeedMultiplier; // Chispas rápidas, dinámicas y vivas
           })
           .linkDirectionalParticleWidth(link => {
-            const sId = (link.source && (link.source.id || link.source)) || '';
-            const tId = (link.target && (link.target.id || link.target)) || '';
-            const activeId = hoveredNodeId || focusedNodeId;
-            if (activeId && (sId === activeId || tId === activeId)) {
-              return 3.2; // Chispitas gruesas, potentes y brillantes
-            }
-            return link.isStructural ? 1.8 : 1.2;
+            return 3.4; // Chispitas gruesas, potentes y bien visibles
           })
           .linkDirectionalParticleColor(link => {
-            const sId = (link.source && (link.source.id || link.source)) || '';
-            const tId = (link.target && (link.target.id || link.target)) || '';
-            const activeId = hoveredNodeId || focusedNodeId;
-            if (activeId && (sId === activeId || tId === activeId)) {
-              return '#ffffff'; // Destello blanco incandescente de alta energía
-            }
-            return link.isStructural ? '#ffffff' : '#38bdf8';
+            return '#ffffff'; // Destello blanco incandescente de alta energía
           })
-          .onNodeClick(node => focusNode(node))
+          .onNodeClick(node => {
+            focusNode(node);
+            if (graphInstance) {
+              graphInstance.linkDirectionalParticles(graphInstance.linkDirectionalParticles());
+              graphInstance.linkColor(graphInstance.linkColor());
+              graphInstance.linkWidth(graphInstance.linkWidth());
+            }
+          })
           .onNodeHover((node, prevNode) => {
             const container = document.getElementById('3d-graph');
             if (container) {
               container.style.cursor = node ? 'pointer' : 'grab';
             }
 
-            hoveredNodeId = node ? node.id : null;
+            const newHoveredId = node ? node.id : null;
+            if (newHoveredId !== hoveredNodeId) {
+              hoveredNodeId = newHoveredId;
+              // Disparar o apagar inmediatamente las chispas al posar o retirar el ratón
+              if (graphInstance) {
+                graphInstance.linkDirectionalParticles(graphInstance.linkDirectionalParticles());
+                graphInstance.linkColor(graphInstance.linkColor());
+                graphInstance.linkWidth(graphInstance.linkWidth());
+              }
+            }
 
             if (node) {
               // Crear etiqueta bajo demanda si no existe aún
