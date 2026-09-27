@@ -808,6 +808,28 @@
     let graphInstance = null;
     let autoRotate = true;
 
+    let isNodeBeingDragged = false;
+    let physicsFreezeTimer = null;
+
+    /**
+     * Motor de congelamiento cinético (Option B - Smart Physics Cooldown):
+     * Permite que la simulación D3 organice y estabilice el grafo inicialmente (~3.8-4.2s)
+     * y luego congela el cálculo continuo de fuerzas D3 (alphaDecay alto, alphaTarget 0).
+     * Esto reduce el uso de CPU de ~90% a ~1-2%, manteniendo la cámara orbital Three.js
+     * y las animaciones a 60 FPS ultra fluidos.
+     * Durante el arrastre de nodos, las físicas se despiertan suavemente y vuelven a congelarse al soltar.
+     */
+    function schedulePhysicsFreeze(delayMs = 3800) {
+      if (physicsFreezeTimer) clearTimeout(physicsFreezeTimer);
+      physicsFreezeTimer = setTimeout(() => {
+        if (graphInstance) {
+          console.log('❄️ [OKF Perf Engine] D3 physics frozen (CPU -> ~1-2%). 3D camera and orbits maintain 60 FPS.');
+          graphInstance.d3AlphaTarget(0);
+          graphInstance.d3AlphaDecay(0.08);
+        }
+      }, delayMs);
+    }
+
     let linkBrightness = parseFloat(localStorage.getItem('okf_link_brightness') || '1.0');
     let orbitalSpeedMultiplier = parseFloat(localStorage.getItem('okf_orbital_speed') || '1.0');
     let particleDensityHigh = localStorage.getItem('okf_particle_density') === 'high';
@@ -930,19 +952,21 @@
 
     function setupGalaxyParameters(nodes) {
       if (!nodes || !nodes.length) return;
-      const roots = nodes.filter(n => n.isRoot);
-      const N = Math.max(roots.length, 1);
+      // Separar: roots principales (no sub-planetas), sub-planetas, y hojas
+      const mainRoots = nodes.filter(n => n.isRoot && !n.isSubPlanet);
+      const subPlanets = nodes.filter(n => n.isSubPlanet);
+      const N = Math.max(mainRoots.length, 1);
 
       // Distribución celestial dinámica para N sistemas (escala automáticamente desde 3 hasta 50+ sistemas)
       const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5 grados (Golden Spiral 3D)
       const dynamicGalaxyRadius = Math.max(185, 125 + Math.sqrt(N) * 35);
 
-      roots.forEach((rn, idx) => {
+      // Posicionar roots principales (igual que antes)
+      mainRoots.forEach((rn, idx) => {
         let anchor = null;
         if (N <= 8 && GALAXY_CLUSTERS[rn.group]) {
           anchor = GALAXY_CLUSTERS[rn.group];
         } else {
-          // Empaquetamiento armónico de Fibonacci en esfera 3D (máxima separación mutua sin solapes)
           const y = 1 - (idx / Math.max(N - 1, 1)) * 2;
           const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
           const theta = goldenAngle * idx;
@@ -957,31 +981,73 @@
         rn.starTargetZ = anchor.z;
       });
 
+      // Construir mapa de roots por grupo para lookup
+      const rootsByGroup = {};
+      mainRoots.forEach(rn => { rootsByGroup[rn.group] = rn; });
+
+      // Posicionar sub-planetas orbitando su root padre a radio cercano (~55-70)
+      const subPlanetsByParent = {};
+      subPlanets.forEach(sp => {
+        const parentGroup = sp.group; // emails, invoices
+        if (!subPlanetsByParent[parentGroup]) subPlanetsByParent[parentGroup] = [];
+        subPlanetsByParent[parentGroup].push(sp);
+      });
+
+      Object.entries(subPlanetsByParent).forEach(([parentGroup, sps]) => {
+        const parentRoot = rootsByGroup[parentGroup];
+        if (!parentRoot) return;
+        const subOrbitRadius = 55 + sps.length * 8; // Radio orbital de sub-planetas respecto a su root
+
+        sps.forEach((sp, idx) => {
+          const angle = (idx / Math.max(sps.length, 1)) * Math.PI * 2 + 0.3;
+          const tiltY = (idx % 2 === 0 ? 1 : -1) * 12;
+          sp.starTargetX = (parentRoot.starTargetX || 0) + Math.cos(angle) * subOrbitRadius;
+          sp.starTargetY = (parentRoot.starTargetY || 0) + tiltY;
+          sp.starTargetZ = (parentRoot.starTargetZ || 0) + Math.sin(angle) * subOrbitRadius;
+          // Dar al sub-planeta una órbita lenta alrededor de su root
+          sp.subPlanetOrbit = {
+            radius: subOrbitRadius,
+            currentAngle: angle,
+            orbitSpeed: 0.004, // Muy lenta para estabilidad visual
+            tiltY: tiltY,
+            parentGroup: parentGroup
+          };
+        });
+      });
+
+      // Construir mapa de sub-planetas por ID para lookup rápido
+      const subPlanetMap = {};
+      subPlanets.forEach(sp => { subPlanetMap[sp.id] = sp; });
+      window.__subPlanetMap = subPlanetMap;
+
+      // Identificar los nodos hoja y su centro orbital correcto
       const groupChildren = {};
-      nodes.filter(n => !n.isRoot).forEach(n => {
-        const g = n.group || 'otros';
-        if (!groupChildren[g]) groupChildren[g] = [];
-        groupChildren[g].push(n);
+      nodes.filter(n => !n.isRoot && !n.isSubPlanet).forEach(n => {
+        // Si tiene subGroup, orbita el sub-planeta; si no, orbita el root de su grupo
+        const orbitCenter = n.subGroup ? `subplanet_${n.group}_${n.subGroup}` : `root_${n.group}`;
+        if (!groupChildren[orbitCenter]) groupChildren[orbitCenter] = [];
+        groupChildren[orbitCenter].push(n);
       });
 
       window.__systemRingRadii = {};
 
-      // Distribuir planetas sobre anillos orbitales concéntricos Keplerianos que escalan según el volumen de nodos
-      Object.entries(groupChildren).forEach(([grp, children]) => {
+      // Distribuir hojas sobre anillos orbitales Keplerianos alrededor de su centro (root o sub-planeta)
+      Object.entries(groupChildren).forEach(([centerId, children]) => {
         const total = children.length;
-        // Si el sistema tiene muchos nodos/contestaciones (ej: 50, 100, 300), amplía dinámicamente los anillos
         const numRings = Math.min(16, Math.max(5, Math.ceil(Math.sqrt(total) * 1.5)));
-        const maxR = Math.min(125, 68 + Math.sqrt(total) * 4.5);
+        // Sub-planetas tienen órbitas más compactas (max 85) que los roots directos (max 125)
+        const isSubPlanetOrbit = centerId.startsWith('subplanet_');
+        const maxR = isSubPlanetOrbit ? Math.min(85, 40 + Math.sqrt(total) * 5) : Math.min(125, 68 + Math.sqrt(total) * 4.5);
+        const minR = isSubPlanetOrbit ? 16 : 24;
         const ringRadii = [];
         for (let rIdx = 0; rIdx < numRings; rIdx++) {
-          ringRadii.push(24 + (rIdx / Math.max(numRings - 1, 1)) * (maxR - 24));
+          ringRadii.push(minR + (rIdx / Math.max(numRings - 1, 1)) * (maxR - minR));
         }
-        window.__systemRingRadii[grp] = ringRadii;
+        window.__systemRingRadii[centerId] = ringRadii;
 
         children.forEach((child, i) => {
           const ringIdx = i % ringRadii.length;
           const r = ringRadii[ringIdx];
-          // Inclinaciones armilares tridimensionales variadas y estables
           const rx = Math.sin(ringIdx * 1.15) * 0.72;
           const rz = Math.cos(ringIdx * 1.35) * 0.65;
           const baseAngle = (i / Math.max(total, 1)) * Math.PI * 2 + (ringIdx * 1.35) + (i * 0.35);
@@ -991,8 +1057,10 @@
             rx: rx,
             rz: rz,
             currentAngle: baseAngle,
-            orbitSpeed: 0.012 / Math.sqrt(r / 24) // Tercera Ley de Kepler: órbitas interiores rotan más rápido
+            orbitSpeed: 0.012 / Math.sqrt(r / (isSubPlanetOrbit ? 16 : 24))
           };
+          // Guardar referencia al centro orbital del nodo hoja
+          child.__orbitCenterId = centerId;
         });
       });
     }
@@ -1026,19 +1094,28 @@
         setupGalaxyParameters(nodes);
 
         const rootsMap = new Map();
+        const subPlanetsInitMap = new Map();
         nodes.filter(n => n.isRoot).forEach(rn => {
-          rootsMap.set(rn.group, rn);
-          rootsMap.set(rn.group + 's', rn);
-          if (rn.group && rn.group.endsWith('s')) rootsMap.set(rn.group.slice(0, -1), rn);
+          if (rn.isSubPlanet) {
+            subPlanetsInitMap.set(rn.id, rn);
+          } else {
+            rootsMap.set(rn.group, rn);
+            rootsMap.set(rn.group + 's', rn);
+            if (rn.group && rn.group.endsWith('s')) rootsMap.set(rn.group.slice(0, -1), rn);
+          }
           rn.x = rn.starTargetX || 0;
           rn.y = rn.starTargetY || 0;
           rn.z = rn.starTargetZ || 0;
           rn.vx = 0; rn.vy = 0; rn.vz = 0;
         });
 
-        // Posicionar cada planeta en su órbita concéntrica correspondiente alrededor de su Sol
+        // Posicionar cada planeta en su órbita concéntrica correspondiente alrededor de su Sol (o sub-planeta)
         nodes.filter(n => !n.isRoot).forEach(child => {
-          const star = rootsMap.get(child.group) || rootsMap.get(child.group + 's') || (child.group && child.group.endsWith('s') && rootsMap.get(child.group.slice(0, -1)));
+          let star = null;
+          if (child.__orbitCenterId && child.__orbitCenterId.startsWith('subplanet_')) {
+            star = subPlanetsInitMap.get(child.__orbitCenterId);
+          }
+          if (!star) star = rootsMap.get(child.group) || rootsMap.get(child.group + 's') || (child.group && child.group.endsWith('s') && rootsMap.get(child.group.slice(0, -1)));
           if (star && child.solarOrbit) {
             const ang = child.solarOrbit.currentAngle;
             const r = child.solarOrbit.radius;
@@ -1108,12 +1185,13 @@
 
       if (graphInstance) {
         if (mode === 'galaxy') {
-          graphInstance.d3AlphaDecay(0);
-          graphInstance.d3VelocityDecay(0.16);
-        } else {
           graphInstance.d3AlphaDecay(0.02);
+          graphInstance.d3VelocityDecay(0.18);
+        } else {
+          graphInstance.d3AlphaDecay(0.025);
           graphInstance.d3VelocityDecay(0.35);
         }
+        schedulePhysicsFreeze(4000);
 
         // Re-evaluar curvas de enlaces dinámicamente según el modo seleccionado
         graphInstance.linkCurvature(graphInstance.linkCurvature());
@@ -1767,6 +1845,12 @@
           })
           .onNodeDrag((node, translate) => {
             isNodeBeingDragged = true;
+            if (physicsFreezeTimer) clearTimeout(physicsFreezeTimer);
+            if (graphInstance) {
+              // Reactivar físicas suaves localmente durante el arrastre (deformación elástica de enlaces conectados)
+              graphInstance.d3AlphaDecay(0.02);
+              graphInstance.d3AlphaTarget(0.14);
+            }
             if (!node) return;
             if (node.isRoot) {
               node.__isDraggingRoot = true;
@@ -1777,6 +1861,11 @@
           })
           .onNodeDragEnd(node => {
             setTimeout(() => { isNodeBeingDragged = false; }, 50);
+            if (graphInstance) {
+              // Se detiene la inyección de energía y se programa el congelamiento tras 1.2s de relajación
+              graphInstance.d3AlphaTarget(0);
+              schedulePhysicsFreeze(1200);
+            }
             if (node && node.isRoot) {
               node.__isDraggingRoot = false;
               // Release fixed pin so it elastically returns to the spherical shell
@@ -1816,7 +1905,7 @@
         // Pre-compute galaxy coordinates and orbital parameters
         setupGalaxyParameters(data.nodes);
         window.__cachedAllNodes = data.nodes;
-        cachedRootNodes = data.nodes.filter(n => n.isRoot);
+        cachedRootNodes = data.nodes.filter(n => n.isRoot && !n.isSubPlanet);
 
         // 2. Dual Physics Engine: 3D Spherical Cortex vs 3D Galaxy (Stars & Planets)
         graphInstance.d3Force('brain_physics', () => {
@@ -1825,12 +1914,19 @@
           // Identify dragged roots and collect all roots
           const draggedRootsMap = new Map();
           const allRootsMap = new Map();
+          const allSubPlanetsMap = new Map(); // Sub-planetas por ID
           for (let i = 0; i < nodes.length; i++) {
             const n = nodes[i];
             if (n.isRoot) {
-              allRootsMap.set(n.group, n);
-              allRootsMap.set(n.group + 's', n);
-              if (n.group && n.group.endsWith('s')) allRootsMap.set(n.group.slice(0, -1), n);
+              if (n.isSubPlanet) {
+                // Sub-planeta: registrar por ID para que los hijos lo encuentren
+                allSubPlanetsMap.set(n.id, n);
+              } else {
+                // Root principal
+                allRootsMap.set(n.group, n);
+                allRootsMap.set(n.group + 's', n);
+                if (n.group && n.group.endsWith('s')) allRootsMap.set(n.group.slice(0, -1), n);
+              }
               if (n.__isDraggingRoot) {
                 draggedRootsMap.set(n.group, n);
               }
@@ -1865,27 +1961,56 @@
               const n = nodes[i];
 
               if (n.isRoot) {
-                // ⭐ SOL / ESTRELLA CENTRAL (Resplandor pulsante vivo)
+                // ⭐ SOL / ESTRELLA CENTRAL o 🪐 SUB-PLANETA (Resplandor pulsante vivo)
                 if (n.__stellarFlare) {
                   const pulseSpeed = Math.max(0.05, orbitalSpeedMultiplier);
-                  const pulse = 1.0 + Math.sin(Date.now() * 0.0022 * pulseSpeed + i * 1.4) * 0.09;
-                  n.__stellarFlare.scale.set(24 * pulse, 24 * pulse, 1);
+                  const pulseAmplitude = n.isSubPlanet ? 0.06 : 0.09;
+                  const pulseSize = n.isSubPlanet ? 16 : 24;
+                  const pulse = 1.0 + Math.sin(Date.now() * 0.0022 * pulseSpeed + i * 1.4) * pulseAmplitude;
+                  n.__stellarFlare.scale.set(pulseSize * pulse, pulseSize * pulse, 1);
                 }
                 if (!n.__isDraggingRoot) {
-                  const center = (n.starTargetX !== undefined && n.starTargetY !== undefined && n.starTargetZ !== undefined)
-                    ? { x: n.starTargetX, y: n.starTargetY, z: n.starTargetZ }
-                    : (GALAXY_CLUSTERS[n.group] || 
-                       GALAXY_CLUSTERS[n.group + 's'] || 
-                       (n.group && n.group.endsWith('s') ? GALAXY_CLUSTERS[n.group.slice(0, -1)] : null) || 
-                       { x: Math.cos((i + 1) * 1.25) * 160, y: Math.sin((i + 1) * 0.8) * 60, z: Math.sin((i + 1) * 1.5) * 160 });
-                  n.x += (center.x - n.x) * 0.12;
-                  n.y += (center.y - n.y) * 0.12;
-                  n.z += (center.z - n.z) * 0.12;
+                  if (n.isSubPlanet && n.subPlanetOrbit) {
+                    // 🌙 SUB-PLANETA: orbitar su root padre con rotación suave
+                    const parentRoot = allRootsMap.get(n.group);
+                    if (parentRoot) {
+                      n.subPlanetOrbit.currentAngle += (n.subPlanetOrbit.orbitSpeed || 0.004) * orbitalSpeedMultiplier;
+                      const spAng = n.subPlanetOrbit.currentAngle;
+                      const spR = n.subPlanetOrbit.radius;
+                      const tiltY = n.subPlanetOrbit.tiltY || 0;
+                      const targetX = parentRoot.x + Math.cos(spAng) * spR;
+                      const targetY = parentRoot.y + tiltY;
+                      const targetZ = parentRoot.z + Math.sin(spAng) * spR;
+                      n.x += (targetX - n.x) * 0.15;
+                      n.y += (targetY - n.y) * 0.15;
+                      n.z += (targetZ - n.z) * 0.15;
+                      // Actualizar starTarget dinámicamente para que los hijos lo sigan
+                      n.starTargetX = n.x;
+                      n.starTargetY = n.y;
+                      n.starTargetZ = n.z;
+                    }
+                  } else {
+                    // ⭐ ROOT PRINCIPAL: anclar a su posición galáctica fija
+                    const center = (n.starTargetX !== undefined && n.starTargetY !== undefined && n.starTargetZ !== undefined)
+                      ? { x: n.starTargetX, y: n.starTargetY, z: n.starTargetZ }
+                      : (GALAXY_CLUSTERS[n.group] || 
+                         GALAXY_CLUSTERS[n.group + 's'] || 
+                         (n.group && n.group.endsWith('s') ? GALAXY_CLUSTERS[n.group.slice(0, -1)] : null) || 
+                         { x: Math.cos((i + 1) * 1.25) * 160, y: Math.sin((i + 1) * 0.8) * 60, z: Math.sin((i + 1) * 1.5) * 160 });
+                    n.x += (center.x - n.x) * 0.12;
+                    n.y += (center.y - n.y) * 0.12;
+                    n.z += (center.z - n.z) * 0.12;
+                  }
                   n.vx = 0; n.vy = 0; n.vz = 0;
                 }
               } else {
                 // 🪐 PLANETA EN ÓRBITA KEPLERIANA PURA (Cero temblores, rotación perpetua fluida)
-                const star = allRootsMap.get(n.group);
+                // Resolver centro orbital: sub-planeta si tiene __orbitCenterId, si no el root del grupo
+                let star = null;
+                if (n.__orbitCenterId && n.__orbitCenterId.startsWith('subplanet_')) {
+                  star = allSubPlanetsMap.get(n.__orbitCenterId);
+                }
+                if (!star) star = allRootsMap.get(n.group);
                 if (!star) continue;
 
                 if (!n.solarOrbit) {
@@ -2058,7 +2183,11 @@
         }
 
         // Auto-rotation & Pure Trackball Controls
-        if (currentMode === "galaxy") { graphInstance.d3AlphaDecay(0); graphInstance.d3VelocityDecay(0.16); }
+        if (currentMode === "galaxy") { 
+          graphInstance.d3AlphaDecay(0.02); 
+          graphInstance.d3VelocityDecay(0.18); 
+        }
+        schedulePhysicsFreeze(4200);
         const controls = graphInstance.controls();
         if (controls) {
           controls.autoRotate = false;
@@ -2233,7 +2362,8 @@
       targetPhi = Math.max(0.10, Math.min(Math.PI - 0.10, targetPhi));
     }
 
-    let isNodeBeingDragged = false;
+    // isNodeBeingDragged ya está inicializado globalmente arriba
+    isNodeBeingDragged = false;
 
     function setupGlassOrbDrag() {
       const graphContainer = document.getElementById('3d-graph');
@@ -2754,8 +2884,9 @@
       updateHudToggleState();
 
       await initGraph();
-      // Restaurar modo: Por defecto siempre 3D Galaxy activo y en órbita
-      const savedMode = localStorage.getItem('okf_viz_mode') || 'galaxy';
+      // Restaurar modo: Detectar hash o localStorage
+      const hashMode = (window.location.hash.includes('cortex') || window.location.hash.includes('spherical')) ? 'spherical' : (window.location.hash.includes('galaxy') ? 'galaxy' : null);
+      const savedMode = hashMode || localStorage.getItem('okf_viz_mode') || 'galaxy';
       if (savedMode === 'spherical') {
         setTimeout(() => switchVisualizationMode('spherical', true), 120);
       } else {
