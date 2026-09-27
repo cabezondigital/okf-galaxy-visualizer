@@ -138,6 +138,103 @@
       cursor: not-allowed;
     }
 
+    /* Local Vault Button (100% Local & Private) */
+    .vault-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #7dd3fc;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(10px);
+    }
+    .vault-btn:hover {
+      background: rgba(56, 189, 248, 0.28);
+      border-color: #38bdf8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* Drag & Drop Local Vault Overlay */
+    .drop-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(4, 8, 16, 0.85);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+      pointer-events: auto;
+      transition: opacity 0.3s ease;
+    }
+    .drop-overlay.hidden {
+      display: none !important;
+    }
+    .drop-card {
+      background: rgba(13, 21, 38, 0.94);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 50px rgba(56, 189, 248, 0.18);
+      border-radius: 22px;
+      padding: 42px 48px;
+      text-align: center;
+      max-width: 520px;
+      animation: dropFloat 4s ease-in-out infinite alternate;
+    }
+    @keyframes dropFloat {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-7px); }
+    }
+    .drop-icon {
+      font-size: 3.4rem;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 22px #38bdf8);
+    }
+    .drop-card h2 {
+      color: #f8fafc;
+      font-size: 1.45rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .drop-desc {
+      color: #94a3b8;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      margin-bottom: 26px;
+    }
+    .primary-drop-btn {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(2, 132, 199, 0.45);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .primary-drop-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 30px rgba(2, 132, 199, 0.65);
+    }
+    .drop-subtext {
+      color: #64748b;
+      font-size: 0.8rem;
+      margin-top: 14px;
+    }
+
     /* Notification Toast */
     #brain-toast {
       position: fixed;
@@ -682,6 +779,13 @@
         </div>
       </div>
 
+      <!-- Local Vault Folder Selector (100% Offline & Private) -->
+      <button class="vault-btn" id="vault-picker-btn" onclick="openVaultPicker()" title="Seleccionar Carpeta Local de Notas / OKF (100% Privado y Seguro)">
+        <span>📂</span>
+        <span id="vault-btn-label">Abrir Vault Local</span>
+      </button>
+      <input type="file" id="vault-folder-input" webkitdirectory directory multiple style="display: none" onchange="handleFolderSelect(event)">
+
       <!-- Executive Action: Refresh Graph -->
       <button class="learn-btn" id="learn-btn" onclick="triggerForcedLearning()" title="Refresh Graph & Re-index Vault">
         <span>⚡</span>
@@ -695,6 +799,21 @@
 
   <div id="main-container">
     <div id="3d-graph"></div>
+
+    <!-- Local Vault Empty / Drag & Drop Overlay -->
+    <div id="drop-overlay" class="drop-overlay hidden">
+      <div class="drop-card">
+        <div class="drop-icon">🌌</div>
+        <h2>OKF Galaxy 3D — Bóveda Local</h2>
+        <p class="drop-desc">Visualizador de conocimiento 100% privado, local y seguro.<br>Tus datos nunca salen de tu ordenador ni se abren puertos al exterior.</p>
+        <div class="drop-actions">
+          <button class="primary-drop-btn" onclick="openVaultPicker()">
+            <span>📂</span> Seleccionar Carpeta Vault / OKF
+          </button>
+          <div class="drop-subtext">o arrastra y suelta tu carpeta de notas directamente aquí</div>
+        </div>
+      </div>
+    </div>
 
     <!-- SEMITRANSPARENT MINI-SPHERE ROTATION & SUBTLE ZOOM HUD -->
     <div class="mini-sphere-hud" id="mini-sphere-hud">
@@ -1574,33 +1693,348 @@
       if (menu) menu.innerHTML = menuHtml;
     }
 
-    async function initGraph() {
-      try {
-        console.log('Fetching graph data...');
-        const candidateUrls = [
-          localStorage.getItem('okf_api_endpoint'),
-          'http://localhost:3005/api/okf-graph',
-          'http://localhost:4000/api/graph',
-          '/api/okf-graph',
-          '/api/graph'
-        ].filter(Boolean);
+    // =========================================================================
+    // 📂 LOCAL-FIRST VAULT ENGINE (100% OFFLINE, PRIVATE & SECURE)
+    // =========================================================================
 
-        let res = null;
-        for (const url of candidateUrls) {
+    function slugify(text) {
+      if (!text) return '';
+      return text
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    }
+
+    const CANONICAL_CLUSTER_COLORS = {
+      contacts: '#fbbf24',
+      contact: '#fbbf24',
+      events: '#38bdf8',
+      event: '#38bdf8',
+      emails: '#c084fc',
+      email: '#c084fc',
+      photos: '#f43f5e',
+      photo: '#f43f5e',
+      learnings: '#10b981',
+      learning: '#10b981',
+      projects: '#6366f1',
+      project: '#6366f1',
+      tools: '#06b6d4',
+      tool: '#06b6d4',
+      expenses: '#eab308',
+      expense: '#eab308',
+      invoices: '#f59e0b',
+      concepts: '#38bdf8',
+      concept: '#38bdf8',
+      architecture: '#c084fc',
+      research: '#f43f5e'
+    };
+
+    const CLUSTER_DISPLAY_LABELS = {
+      contacts: 'CONTACTOS VIP',
+      events: 'EVENTOS Y AGENDA',
+      emails: 'CORREOS INDEXADOS',
+      photos: 'LOOKS Y ESTILISMO',
+      learnings: 'OKF APRENDIZAJES',
+      projects: 'PROYECTOS ESTRATÉGICOS',
+      tools: 'HERRAMIENTAS (TOOLS)',
+      expenses: 'GASTOS Y FACTURAS',
+      invoices: 'FACTURAS'
+    };
+
+    const CLUSTER_PALETTE = [
+      '#38bdf8', '#fbbf24', '#f43f5e', '#10b981', '#a855f7',
+      '#f97316', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'
+    ];
+
+    function openVaultPicker() {
+      const input = document.getElementById('vault-folder-input');
+      if (input) input.click();
+    }
+
+    async function handleFolderSelect(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+      const fileEntries = [];
+      let vaultName = 'Vault Local';
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        if (f.name.toLowerCase().endsWith('.md')) {
+          const relPath = f.webkitRelativePath || f.name;
+          if (relPath.includes('/')) {
+            vaultName = relPath.split('/')[0];
+          }
+          fileEntries.push({
+            name: f.name,
+            path: relPath,
+            getContent: () => f.text()
+          });
+        }
+      }
+      if (fileEntries.length > 0) {
+        await parseLocalMarkdownVault(fileEntries, vaultName);
+      } else {
+        showToast('⚠️ No se encontraron archivos .md en la carpeta seleccionada');
+      }
+    }
+
+    // Drag and Drop of Local Folders directly onto the window
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      const dropOverlay = document.getElementById('drop-overlay');
+      if (dropOverlay) dropOverlay.classList.remove('hidden');
+    });
+
+    window.addEventListener('dragleave', (e) => {
+      if (e.relatedTarget === null) {
+        const dropOverlay = document.getElementById('drop-overlay');
+        if (dropOverlay && graphData && graphData.nodes && graphData.nodes.length > 0) {
+          dropOverlay.classList.add('hidden');
+        }
+      }
+    });
+
+    window.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      const items = e.dataTransfer.items;
+      if (!items || items.length === 0) return;
+      showToast('📂 Analizando carpeta arrastrada...');
+      const fileEntries = [];
+      const queue = [];
+      for (let i = 0; i < items.length; i++) {
+        const entry = items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : null;
+        if (entry) queue.push(entry);
+      }
+      while (queue.length > 0) {
+        const entry = queue.shift();
+        if (entry.isFile && entry.name.toLowerCase().endsWith('.md')) {
+          fileEntries.push({
+            name: entry.name,
+            path: entry.fullPath,
+            getContent: () => new Promise(res => {
+              entry.file(f => {
+                const reader = new FileReader();
+                reader.onload = () => res(reader.result);
+                reader.readAsText(f);
+              });
+            })
+          });
+        } else if (entry.isDirectory) {
+          const reader = entry.createReader();
+          const readEntries = () => new Promise(res => reader.readEntries(res));
+          let subEntries;
+          do {
+            subEntries = await readEntries();
+            for (const sub of subEntries) queue.push(sub);
+          } while (subEntries && subEntries.length > 0);
+        }
+      }
+      if (fileEntries.length > 0) {
+        await parseLocalMarkdownVault(fileEntries, 'Bóveda Arrastrada');
+      } else {
+        showToast('⚠️ No se encontraron archivos .md en la carpeta soltada');
+        const dropOverlay = document.getElementById('drop-overlay');
+        if (dropOverlay && graphData && graphData.nodes && graphData.nodes.length > 0) {
+          dropOverlay.classList.add('hidden');
+        }
+      }
+    });
+
+    async function parseLocalMarkdownVault(fileEntries, vaultName = 'Vault Local') {
+      showToast('⚡ Indexando bóveda local en memoria...');
+      const nodes = [];
+      const edges = [];
+      const nodeMap = new Map();
+      const clusters = {};
+      const fileContents = new Map();
+
+      const clusterFiles = {};
+      let palIdx = 0;
+
+      for (const item of fileEntries) {
+        if (!item.name.toLowerCase().endsWith('.md')) continue;
+        const relPath = (item.path || item.name).replace(/^[\/]+/, '');
+        const parts = relPath.split('/');
+        let group = 'general';
+        if (parts.length > 1) {
+          group = parts[0].toLowerCase();
+        }
+        if (!clusterFiles[group]) clusterFiles[group] = [];
+        clusterFiles[group].push(item);
+      }
+
+      for (const [group, items] of Object.entries(clusterFiles)) {
+        const clusterColor = CANONICAL_CLUSTER_COLORS[group] || CLUSTER_PALETTE[palIdx % CLUSTER_PALETTE.length];
+        palIdx++;
+
+        const rootId = 'root_' + slugify(group);
+        const displayTitle = CLUSTER_DISPLAY_LABELS[group] || group.toUpperCase();
+        const rootNode = {
+          id: rootId,
+          label: '🌟 ' + displayTitle,
+          group: group,
+          filePath: '',
+          summary: 'Centro de gravedad para el clúster: ' + group,
+          tags: ['cluster_root', group],
+          color: clusterColor,
+          size: 42,
+          isRoot: true
+        };
+        nodes.push(rootNode);
+        nodeMap.set(rootId, rootNode);
+        clusters[group] = 0;
+
+        for (const it of items) {
           try {
-            const r = await fetch(url);
-            if (r && r.ok) {
-              res = r;
-              console.log('✅ Connected to OKF Graph API at:', url);
-              break;
+            const content = await it.getContent();
+            const slug = it.name.replace(/\.md$/i, '');
+            fileContents.set(slug, content);
+
+            const titleMatch = content.match(/^#+\s*(.+)$/m);
+            const fmTitleMatch = content.match(/title:\s*["']?([^\r\n"']+)["']?/i);
+            let label = fmTitleMatch
+              ? fmTitleMatch[1].trim()
+              : (titleMatch ? titleMatch[1].replace(/\[\[|\]\]/g, '').trim() : slug.replace(/_/g, ' '));
+
+            const tags = Array.from(content.matchAll(/#([a-zA-Z0-9_\-]+)/g)).map(m => m[1]);
+            const fmTagsMatch = content.match(/tags:\s*\[([^\]]+)\]/i);
+            if (fmTagsMatch) {
+              const parsedFm = fmTagsMatch[1].split(',').map(t => t.replace(/["'\s]/g, '')).filter(Boolean);
+              tags.push(...parsedFm);
             }
-          } catch(e) {}
+
+            let imageUrl;
+            const imgMatch = content.match(/imageFile:\s*["']?([^\r\n"']+)["']?/i) || content.match(/imageUrl:\s*["']?([^\r\n"']+)["']?/i);
+            if (imgMatch) imageUrl = imgMatch[1];
+
+            const summaryClean = content.replace(/^---[\s\S]*?---\s*/, '').trim();
+
+            const node = {
+              id: slug,
+              label: label,
+              group: group,
+              filePath: it.path || it.name,
+              summary: summaryClean || 'Sin descripción.',
+              tags: Array.from(new Set(tags)),
+              imageUrl: imageUrl,
+              color: clusterColor,
+              size: 18
+            };
+
+            nodes.push(node);
+            nodeMap.set(slug, node);
+            nodeMap.set(slugify(label), node);
+            clusters[group]++;
+
+            edges.push({
+              id: `${rootId}==>${slug}`,
+              source: rootId,
+              target: slug,
+              label: 'belongs_to',
+              isStructural: true
+            });
+          } catch (e) {
+            console.warn('Error parseando archivo:', it.name, e);
+          }
         }
-        if (!res || !res.ok) {
-          throw new Error('No se pudo conectar con ningún servidor OKF (intentado puertos 3005, 4000 y local).');
+      }
+
+      // Conexiones de wikilinks [[...]]
+      for (const [slug, content] of fileContents.entries()) {
+        const wikilinks = Array.from(content.matchAll(/\[\[(.*?)\]\]/g)).map(m => m[1].trim());
+        for (const link of wikilinks) {
+          const targetSlug = slugify(link);
+          if (nodeMap.has(targetSlug)) {
+            const targetNode = nodeMap.get(targetSlug);
+            if (targetNode && targetNode.id !== slug) {
+              const edgeId = `${slug}-->${targetNode.id}`;
+              const reverseEdgeId = `${targetNode.id}-->${slug}`;
+              const exists = edges.some(e => e.id === edgeId || e.id === reverseEdgeId);
+              if (!exists) {
+                edges.push({
+                  id: edgeId,
+                  source: slug,
+                  target: targetNode.id,
+                  label: 'linked_to',
+                  isStructural: false
+                });
+              }
+            }
+          }
         }
-        const data = await res.json();
-        // Distribuir los nodos aleatoriamente al inicio para evitar la aglomeración fea (cutre) en el centro 0,0,0
+      }
+
+      const generatedData = {
+        nodes,
+        edges,
+        stats: {
+          totalNodes: nodes.length,
+          totalEdges: edges.length,
+          clusters
+        }
+      };
+
+      try {
+        localStorage.setItem('okf_cached_graph_data', JSON.stringify(generatedData));
+        localStorage.setItem('okf_vault_name', vaultName);
+      } catch (e) {
+        console.warn('Alerta cuota localStorage:', e);
+      }
+
+      applyGraphData(generatedData, vaultName);
+      showToast(`✅ Bóveda "${vaultName}" cargada: ${nodes.length} nodos • ${edges.length} sinapsis`);
+    }
+
+    async function initGraph() {
+      // 1. Prioridad: Cargar desde la memoria local privada de la app (0ms, 100% offline y seguro)
+      const cached = localStorage.getItem('okf_cached_graph_data');
+      const cachedName = localStorage.getItem('okf_vault_name') || 'Vault Local';
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.nodes && parsed.nodes.length > 0) {
+            console.log('⚡ Cargando vault local desde memoria privada:', cachedName);
+            applyGraphData(parsed, cachedName);
+            return;
+          }
+        } catch(e) {}
+      }
+
+      // 2. Si no hay caché, intentar detectar servidor loopback estrictamente local (localhost)
+      const candidateUrls = [
+        'http://localhost:3005/api/okf-graph',
+        'http://localhost:4000/api/graph'
+      ];
+      for (const url of candidateUrls) {
+        try {
+          const r = await fetch(url);
+          if (r && r.ok) {
+            const data = await r.json();
+            if (data && data.nodes && data.nodes.length > 0) {
+              applyGraphData(data, 'Servidor Local OKF');
+              return;
+            }
+          }
+        } catch(e) {}
+      }
+
+      // 3. Si no hay nada cargado, mostrar la pantalla de selección/arrastre local
+      const dropOverlay = document.getElementById('drop-overlay');
+      if (dropOverlay) dropOverlay.classList.remove('hidden');
+    }
+
+    function applyGraphData(data, sourceName = 'Vault Local') {
+      try {
+        const dropOverlay = document.getElementById('drop-overlay');
+        if (dropOverlay) dropOverlay.classList.add('hidden');
+
+        const vLabel = document.getElementById('vault-btn-label');
+        if (vLabel) vLabel.innerText = sourceName.length > 18 ? sourceName.slice(0, 15) + '...' : sourceName;
+
+        // Distribuir nodos si vienen sin posición 3D
         (data.nodes || []).forEach(n => {
           if (!n.x && !n.y && !n.z) {
              const r = 200 + Math.random() * 200;
@@ -1612,12 +2046,34 @@
           }
         });
         graphData = data;
-        console.log('Graph data received:', data.stats);
+        window.__cachedAllNodes = data.nodes;
 
-        // Update stats
-        document.getElementById('stat-total-nodes').innerText = data.stats.totalNodes || data.nodes.length;
-        document.getElementById('stat-total-edges').innerText = data.stats.totalEdges || data.edges.length;
+        const statNodes = document.getElementById('stat-total-nodes');
+        const statEdges = document.getElementById('stat-total-edges');
+        if (statNodes) statNodes.innerText = (data.stats && data.stats.totalNodes) || data.nodes.length;
+        if (statEdges) statEdges.innerText = (data.stats && data.stats.totalEdges) || data.edges.length;
+
         renderTaxonomyMenu(data);
+
+        // Si ya existe la instancia 3D, actualizar datos de inmediato
+        if (graphInstance) {
+          const validNodeIds = new Set((data.nodes || []).map(n => n.id));
+          const formattedLinks = (data.edges || [])
+            .filter(e => {
+              const s = (e.source && e.source.id) || e.source;
+              const t = (e.target && e.target.id) || e.target;
+              return validNodeIds.has(s) && validNodeIds.has(t);
+            })
+            .map(e => ({
+              source: (e.source && e.source.id) || e.source,
+              target: (e.target && e.target.id) || e.target,
+              label: e.label,
+              isStructural: !!e.isStructural
+            }));
+          graphInstance.graphData({ nodes: data.nodes, links: formattedLinks });
+          return;
+        }
+
 
         const colorMap = {
           contact: '#fbbf24',
