@@ -2279,24 +2279,18 @@
             node.__threeObj = group;
             return group;
           })
-          // 🌌 SINAPSIS CELESTES DELICADAS: Cero madeja de alambres, cero efecto erizo
-          .linkCurvature(0) // Líneas vectoriales puras y limpias sin bucles circulares
-          .linkResolution(6)
+          // 🌌 SINAPSIS CELESTES CURVAS Y TENUES (Con iluminación dinámica al posar el ratón)
+          .linkCurvature(link => {
+            return link.isStructural ? 0.12 : 0.18; // Arcos curvados suaves, armónicos y orgánicos (cero varillas rectas rígidas)
+          })
+          .linkResolution(8)
           .linkVisibility(link => {
             if (searchActive) {
               const sId = (link.source && link.source.id) || link.source;
               const tId = (link.target && link.target.id) || link.target;
               return matchingNodeIds.has(sId) && matchingNodeIds.has(tId);
             }
-            // 🌟 CLAVE: Enlaces estructurales (600 rayos al Sol) solo visibles bajo interacción activa
-            if (link.isStructural) {
-              const activeId = hoveredNodeId || focusedNodeId;
-              if (!activeId) return false; // Invisibles en reposo -> elimina por completo el paraguas/erizo
-              const sId = (link.source && (link.source.id || link.source)) || '';
-              const tId = (link.target && (link.target.id || link.target)) || '';
-              return (sId === activeId || tId === activeId);
-            }
-            return true;
+            return true; // TODAS las líneas siempre presentes y visibles
           })
           .linkColor(link => {
             const sId = (link.source && (link.source.id || link.source)) || '';
@@ -2305,7 +2299,7 @@
 
             if (searchActive) return '#38bdf8';
 
-            // Iluminar la línea conectada al nodo activo con destello vibrante de su color
+            // 🌟 ILUMINACIÓN DINÁMICA: Cuando el ratón está encima, la línea conectada se vuelve hiper-visible y viva
             if (activeId && (sId === activeId || tId === activeId)) {
               const s = typeof link.source === 'object' ? link.source : null;
               const t = typeof link.target === 'object' ? link.target : null;
@@ -2313,11 +2307,12 @@
               return activeNode ? (colorMap[activeNode.group] || activeNode.color || '#38bdf8') : '#38bdf8';
             }
 
+            // 🌌 REPOSO: Todas las líneas presentes pero más TENUES, sutiles y elegantes
             if (link.isStructural) {
-              return 'rgba(255, 255, 255, 0.45)';
+              const alpha = Math.min(0.20, 0.08 * linkBrightness);
+              return 'rgba(255, 255, 255, ' + alpha.toFixed(3) + ')';
             } else {
-              // Sinapsis conceptuales sutiles como estrellas de constelación en el cielo nocturno
-              const alpha = Math.min(0.22, 0.08 * linkBrightness);
+              const alpha = Math.min(0.22, 0.10 * linkBrightness);
               return 'rgba(56, 189, 248, ' + alpha.toFixed(3) + ')';
             }
           })
@@ -2325,10 +2320,11 @@
             const sId = (link.source && (link.source.id || link.source)) || '';
             const tId = (link.target && (link.target.id || link.target)) || '';
             const activeId = hoveredNodeId || focusedNodeId;
+            // Más visible e intensa en hover
             if (activeId && (sId === activeId || tId === activeId)) {
-              return 1.25; // Nítida y luminosa sin pixelar en cilindros 3D
+              return 1.4; // Claramente visible y destacada
             }
-            return 0.75; // Fina línea WebGL de constelación
+            return 0.75; // Fina y tenue en reposo
           })
           .linkDirectionalParticleResolution(16) // Esferas fotónicas ultra-suaves de alta resolución
           .linkDirectionalParticles(computeLinkParticles)
