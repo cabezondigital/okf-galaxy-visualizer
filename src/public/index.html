@@ -1392,6 +1392,65 @@
       return texture;
     }
 
+    const PLANET_TEXTURES = {};
+
+    function getPlanetTexture(colorHex) {
+      if (!PLANET_TEXTURES[colorHex]) {
+        PLANET_TEXTURES[colorHex] = buildPlanetTexture(colorHex);
+      }
+      return PLANET_TEXTURES[colorHex];
+    }
+
+    // 🪐 Textura fotorrealista de esfera planetaria con sombra sutil y brillo satinado
+    function buildPlanetTexture(colorHex) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+
+      let cr = 56, cg = 189, cb = 248;
+      if (colorHex && colorHex.startsWith('#')) {
+        const hex = colorHex.replace('#', '');
+        if (hex.length === 6) {
+          cr = parseInt(hex.substring(0, 2), 16);
+          cg = parseInt(hex.substring(2, 4), 16);
+          cb = parseInt(hex.substring(4, 6), 16);
+        }
+      }
+
+      // Cuerpo esférico con gradiente radial descentrado (luz superior izquierda -> sombra suave inferior derecha)
+      const grad = ctx.createRadialGradient(46, 42, 2, 60, 60, 56);
+      grad.addColorStop(0, '#ffffff'); // Brillo especular
+      grad.addColorStop(0.18, 'rgba(' + Math.min(255, cr + 65) + ',' + Math.min(255, cg + 65) + ',' + Math.min(255, cb + 65) + ',1)');
+      grad.addColorStop(0.55, 'rgba(' + cr + ',' + cg + ',' + cb + ',0.98)'); // Tono cósmico del sistema
+      // Sombra sutil y elegante (40% de luminosidad, suave y natural, NUNCA negro de goma)
+      grad.addColorStop(0.88, 'rgba(' + Math.max(0, Math.round(cr * 0.40)) + ',' + Math.max(0, Math.round(cg * 0.40)) + ',' + Math.max(0, Math.round(cb * 0.40)) + ',0.95)');
+      // Halo atmosférico sutil
+      grad.addColorStop(0.98, 'rgba(' + cr + ',' + cg + ',' + cb + ',0.55)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      ctx.beginPath();
+      ctx.arc(64, 64, 56, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Reflejo satinado en el cuadrante superior izquierdo
+      const sheen = ctx.createRadialGradient(45, 40, 0, 45, 40, 16);
+      sheen.addColorStop(0, 'rgba(255, 255, 255, 0.75)');
+      sheen.addColorStop(0.45, 'rgba(255, 255, 255, 0.25)');
+      sheen.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      ctx.beginPath();
+      ctx.arc(45, 40, 16, 0, Math.PI * 2);
+      ctx.fillStyle = sheen;
+      ctx.fill();
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.premultiplyAlpha = false;
+      texture.needsUpdate = true;
+      return texture;
+    }
+
     const GLOW_TEXTURES = {};
 
     function getGlowTexture(colorHex) {
@@ -2246,21 +2305,22 @@
               const powerLevel = Math.min(10, degree + Math.round((node.size || 20) / 10));
               const baseSize = Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
 
-              // 🪐 Esfera 3D física real (Mismo objeto con volumen tangible, sombra esférica nítida y reflejo especular)
-              const planetRadius = Math.max(1.0, Math.min(1.7, 0.9 + Math.log2(powerLevel + 1) * 0.22));
-              const sphereGeo = new THREE.SphereGeometry(planetRadius, 32, 24);
-              const sphereMat = new THREE.MeshStandardMaterial({
-                color: nodeColor,
-                roughness: 0.30,
-                metalness: 0.20,
-                emissive: 0x000000 // Sin auto-emisión en reposo para que las sombras y el volumen 3D sean 100% nítidos
+              // 🪐 Esfera planetaria con volumen cósmico real (Sombra sutil, brillo satinado y atmósfera)
+              const planetTex = getPlanetTexture(nodeColor);
+              const planetMat = new THREE.SpriteMaterial({
+                map: planetTex,
+                transparent: true,
+                depthWrite: false
               });
-              const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
-              node.__sphereMesh = coreMesh;
-              group.add(coreMesh);
+              const planetSprite = new THREE.Sprite(planetMat);
+              const planetScale = Math.max(2.2, Math.min(3.6, (0.85 + Math.log2(powerLevel + 1) * 0.2) * 2.3));
+              planetSprite.scale.set(planetScale, planetScale, 1);
+              node.__planetSprite = planetSprite;
+              node.__basePlanetScale = planetScale;
+              group.add(planetSprite);
 
               // 🎯 HIT AREA GENEROSA INVISIBLE: Comodidad máxima de click
-              const hitGeo = new THREE.SphereGeometry(Math.max(6.5, planetRadius * 4.2), 12, 10);
+              const hitGeo = new THREE.SphereGeometry(Math.max(6.5, planetScale * 1.8), 12, 10);
               const hitMat = new THREE.MeshBasicMaterial({
                 transparent: true,
                 opacity: 0.0001,
@@ -2372,6 +2432,14 @@
 
             const newHoveredId = node ? node.id : null;
             if (newHoveredId !== hoveredNodeId) {
+              // Restaurar escala del planeta previo
+              if (prevNode && prevNode.__planetSprite && prevNode.__basePlanetScale) {
+                prevNode.__planetSprite.scale.set(prevNode.__basePlanetScale, prevNode.__basePlanetScale, 1);
+              }
+              // Aumentar suavemente el planeta seleccionado
+              if (node && node.__planetSprite && node.__basePlanetScale) {
+                node.__planetSprite.scale.set(node.__basePlanetScale * 1.35, node.__basePlanetScale * 1.35, 1);
+              }
               hoveredNodeId = newHoveredId;
               // Actualizar visibilidad de sinapsis, partículas y colores en hover
               if (graphInstance) {
@@ -2658,19 +2726,9 @@
         // 🌌 NÚCLEO GALÁCTICO CENTRAL (Singularidad Luminous Core)
         const scene = graphInstance.scene();
 
-        // 💡 ILUMINACIÓN CINEMÁTICA 3D: Alto contraste para marcar sombras de curvatura y brillos reales
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.35); // Luz difusa suave para que el hemisferio oscuro tenga sombra real
+        // 💡 ILUMINACIÓN AMBIENTAL SUAVE
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
         scene.add(ambientLight);
-
-        // Luz direccional principal (Key Light): Crea terminador de sombra esférico y brillo especular
-        const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
-        keyLight.position.set(650, 850, 750);
-        scene.add(keyLight);
-
-        // Luz de contra / borde (Rim Light) para resaltar el contorno cósmico
-        const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.85);
-        rimLight.position.set(-700, -500, -600);
-        scene.add(rimLight);
 
         const coreGroup = new THREE.Group();
         window.__galaxyCoreGroup = coreGroup;
