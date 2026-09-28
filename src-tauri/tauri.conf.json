@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "OKF-Galaxy",
-  "version": "1.0.8",
+  "version": "1.0.17",
   "identifier": "com.cabezondigital.okfgalaxy",
   "build": {
     "frontendDist": "../src/public",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "OKF Galaxy 3D — Cognitive Brain",
+        "title": "OKF Galaxy 3D \u2014 Cognitive Brain",
         "width": 1280,
         "height": 850,
         "resizable": true,

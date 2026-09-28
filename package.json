@@ -1,6 +1,6 @@
 {
   "name": "okf-galaxy-visualizer",
-  "version": "1.0.0",
+  "version": "1.0.17",
   "description": "Interactive 3D Galaxy Graph Visualizer for Open Knowledge Format (OKF v0.2) and Obsidian vaults",
   "main": "dist/server.js",
   "type": "module",
