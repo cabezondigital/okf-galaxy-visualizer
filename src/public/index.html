@@ -2279,28 +2279,22 @@
             node.__threeObj = group;
             return group;
           })
-          // SPLINES CURVILÍNEOS 3D: Arcos espaciales continuos, suaves y majestuosos
-          .linkCurvature(link => {
-            if (currentMode === 'galaxy') {
-              return link.isStructural ? 0.35 : 0.55;
-            }
-            return link.isStructural ? 0.28 : 0.48;
-          })
-          .linkCurveRotation(link => {
-            const sId = (link.source && (link.source.id || link.source)) || '';
-            const tId = (link.target && (link.target.id || link.target)) || '';
-            let hash = 0;
-            for (let i = 0; i < sId.length; i++) hash = (hash * 31 + sId.charCodeAt(i)) & 0xffffffff;
-            for (let i = 0; i < tId.length; i++) hash = (hash * 31 + tId.charCodeAt(i)) & 0xffffffff;
-            return ((Math.abs(hash) % 1000) / 1000) * Math.PI * 2;
-          })
+          // 🌌 SINAPSIS CELESTES DELICADAS: Cero madeja de alambres, cero efecto erizo
+          .linkCurvature(0) // Líneas vectoriales puras y limpias sin bucles circulares
           .linkResolution(6)
-          // Enlaces Duros (Troncales Padre) vs Enlaces de Relación (Wikilinks claramente visibles)
           .linkVisibility(link => {
             if (searchActive) {
               const sId = (link.source && link.source.id) || link.source;
               const tId = (link.target && link.target.id) || link.target;
               return matchingNodeIds.has(sId) && matchingNodeIds.has(tId);
+            }
+            // 🌟 CLAVE: Enlaces estructurales (600 rayos al Sol) solo visibles bajo interacción activa
+            if (link.isStructural) {
+              const activeId = hoveredNodeId || focusedNodeId;
+              if (!activeId) return false; // Invisibles en reposo -> elimina por completo el paraguas/erizo
+              const sId = (link.source && (link.source.id || link.source)) || '';
+              const tId = (link.target && (link.target.id || link.target)) || '';
+              return (sId === activeId || tId === activeId);
             }
             return true;
           })
@@ -2320,10 +2314,10 @@
             }
 
             if (link.isStructural) {
-              const alpha = Math.min(0.65, 0.38 * linkBrightness);
-              return 'rgba(255, 255, 255, ' + alpha.toFixed(3) + ')';
+              return 'rgba(255, 255, 255, 0.45)';
             } else {
-              const alpha = Math.min(0.70, 0.35 * linkBrightness);
+              // Sinapsis conceptuales sutiles como estrellas de constelación en el cielo nocturno
+              const alpha = Math.min(0.22, 0.08 * linkBrightness);
               return 'rgba(56, 189, 248, ' + alpha.toFixed(3) + ')';
             }
           })
@@ -2332,12 +2326,9 @@
             const tId = (link.target && (link.target.id || link.target)) || '';
             const activeId = hoveredNodeId || focusedNodeId;
             if (activeId && (sId === activeId || tId === activeId)) {
-              return 2.4; // Sinapsis sobrecargada brillante
+              return 1.25; // Nítida y luminosa sin pixelar en cilindros 3D
             }
-            return link.isStructural ? 1.2 : 0.85;
-          })
-          .linkCurvature(link => {
-            return link.isStructural ? 0.04 : 0.12; // Arcos electromagnéticos suaves
+            return 0.75; // Fina línea WebGL de constelación
           })
           .linkDirectionalParticleResolution(16) // Esferas fotónicas ultra-suaves de alta resolución
           .linkDirectionalParticles(computeLinkParticles)
@@ -2360,6 +2351,7 @@
           .onNodeClick(node => {
             focusNode(node);
             if (graphInstance) {
+              graphInstance.linkVisibility(graphInstance.linkVisibility());
               graphInstance.linkDirectionalParticles(graphInstance.linkDirectionalParticles());
               graphInstance.linkColor(graphInstance.linkColor());
               graphInstance.linkWidth(graphInstance.linkWidth());
@@ -2374,8 +2366,9 @@
             const newHoveredId = node ? node.id : null;
             if (newHoveredId !== hoveredNodeId) {
               hoveredNodeId = newHoveredId;
-              // Disparar o apagar inmediatamente las chispas al posar o retirar el ratón
+              // Actualizar visibilidad de sinapsis, partículas y colores en hover
               if (graphInstance) {
+                graphInstance.linkVisibility(graphInstance.linkVisibility());
                 graphInstance.linkDirectionalParticles(graphInstance.linkDirectionalParticles());
                 graphInstance.linkColor(graphInstance.linkColor());
                 graphInstance.linkWidth(graphInstance.linkWidth());
@@ -3080,6 +3073,12 @@
 
     function resetCamera() {
       focusedNodeId = null;
+      if (graphInstance) {
+        graphInstance.linkVisibility(graphInstance.linkVisibility());
+        graphInstance.linkDirectionalParticles(computeLinkParticles);
+        graphInstance.linkColor(graphInstance.linkColor());
+        graphInstance.linkWidth(graphInstance.linkWidth());
+      }
       targetLookAt.set(0, 0, 0);
       targetRadius = 660;
       targetPhi = Math.PI * 0.5;
