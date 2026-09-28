@@ -2205,6 +2205,10 @@
               const plasmaMesh = new THREE.Mesh(plasmaGeo, plasmaMat);
               group.add(plasmaMesh);
 
+              // 🌟 Luz estelar real del Sol que ilumina sus planetas orbitales
+              const starLight = new THREE.PointLight(nodeColor, 1.8, 320, 1.2);
+              group.add(starLight);
+
               // 3. Corona Radiante Focalizada (Halo cercano)
               const glowTex = getGlowTexture(nodeColor);
               const coronaMat = new THREE.SpriteMaterial({
@@ -2242,8 +2246,15 @@
               const powerLevel = Math.min(10, degree + Math.round((node.size || 20) / 10));
               const baseSize = Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
 
-              const sphereGeo = new THREE.SphereGeometry(baseSize, 24, 18);
-              const sphereMat = new THREE.MeshBasicMaterial({ color: nodeColor });
+              // 🪐 Esfera 3D física real con volumen, brillo especular y sombra esférica
+              const sphereGeo = new THREE.SphereGeometry(baseSize, 28, 20);
+              const sphereMat = new THREE.MeshStandardMaterial({
+                color: nodeColor,
+                roughness: 0.38,
+                metalness: 0.15,
+                emissive: nodeColor,
+                emissiveIntensity: 0.18
+              });
               const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
               group.add(coreMesh);
 
@@ -2658,6 +2669,21 @@
 
         // 🌌 NÚCLEO GALÁCTICO CENTRAL (Singularidad Luminous Core)
         const scene = graphInstance.scene();
+
+        // 💡 ILUMINACIÓN CINEMÁTICA 3D: Proporciona sombreado curvo, volumen y brillos especulares a todas las esferas
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+        scene.add(ambientLight);
+
+        // Luz direccional principal (Key Light) desde el cuadrante superior
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+        keyLight.position.set(500, 700, 600);
+        scene.add(keyLight);
+
+        // Luz de contra / borde (Rim Light) azul cósmico para perfilar las sombras
+        const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.7);
+        rimLight.position.set(-600, -400, -500);
+        scene.add(rimLight);
+
         const coreGroup = new THREE.Group();
         window.__galaxyCoreGroup = coreGroup;
 
