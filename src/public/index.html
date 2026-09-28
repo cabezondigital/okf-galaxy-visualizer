@@ -2246,20 +2246,21 @@
               const powerLevel = Math.min(10, degree + Math.round((node.size || 20) / 10));
               const baseSize = Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
 
-              // 🪐 Esfera 3D física real con volumen, brillo especular y sombra esférica
-              const sphereGeo = new THREE.SphereGeometry(baseSize, 28, 20);
+              // 🪐 Esfera 3D física real (Mismo objeto con volumen tangible, sombra esférica nítida y reflejo especular)
+              const planetRadius = Math.max(1.0, Math.min(1.7, 0.9 + Math.log2(powerLevel + 1) * 0.22));
+              const sphereGeo = new THREE.SphereGeometry(planetRadius, 32, 24);
               const sphereMat = new THREE.MeshStandardMaterial({
                 color: nodeColor,
-                roughness: 0.38,
-                metalness: 0.15,
-                emissive: nodeColor,
-                emissiveIntensity: 0.18
+                roughness: 0.30,
+                metalness: 0.20,
+                emissive: 0x000000 // Sin auto-emisión en reposo para que las sombras y el volumen 3D sean 100% nítidos
               });
               const coreMesh = new THREE.Mesh(sphereGeo, sphereMat);
+              node.__sphereMesh = coreMesh;
               group.add(coreMesh);
 
-              // 🎯 HIT AREA GENEROSA INVISIBLE: Multiplica el área de click por 100 para que sea comodísimo clickar
-              const hitGeo = new THREE.SphereGeometry(Math.max(6.5, baseSize * 4.5), 12, 10);
+              // 🎯 HIT AREA GENEROSA INVISIBLE: Comodidad máxima de click
+              const hitGeo = new THREE.SphereGeometry(Math.max(6.5, planetRadius * 4.2), 12, 10);
               const hitMat = new THREE.MeshBasicMaterial({
                 transparent: true,
                 opacity: 0.0001,
@@ -2267,19 +2268,6 @@
               });
               const hitMesh = new THREE.Mesh(hitGeo, hitMat);
               group.add(hitMesh);
-
-              const glowTex = getGlowTexture(nodeColor);
-              const glowMat = new THREE.SpriteMaterial({
-                map: glowTex,
-                transparent: true,
-                blending: THREE.AdditiveBlending,
-                opacity: 0.25 + Math.min(powerLevel, 5) * 0.02
-              , depthWrite: false });
-              const glowSprite = new THREE.Sprite(glowMat);
-              const glowScale = baseSize * 1.6;
-              glowSprite.scale.set(glowScale, glowScale, 1);
-              node.__glowSprite = glowSprite;
-              group.add(glowSprite);
 
               // 🌟 Nombres bajo demanda (Hover / Clic): la galaxia se ve limpia y ahorra el 90% de memoria
               node.__baseSize = baseSize;
@@ -2670,18 +2658,18 @@
         // 🌌 NÚCLEO GALÁCTICO CENTRAL (Singularidad Luminous Core)
         const scene = graphInstance.scene();
 
-        // 💡 ILUMINACIÓN CINEMÁTICA 3D: Proporciona sombreado curvo, volumen y brillos especulares a todas las esferas
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+        // 💡 ILUMINACIÓN CINEMÁTICA 3D: Alto contraste para marcar sombras de curvatura y brillos reales
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.35); // Luz difusa suave para que el hemisferio oscuro tenga sombra real
         scene.add(ambientLight);
 
-        // Luz direccional principal (Key Light) desde el cuadrante superior
-        const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
-        keyLight.position.set(500, 700, 600);
+        // Luz direccional principal (Key Light): Crea terminador de sombra esférico y brillo especular
+        const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+        keyLight.position.set(650, 850, 750);
         scene.add(keyLight);
 
-        // Luz de contra / borde (Rim Light) azul cósmico para perfilar las sombras
-        const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.7);
-        rimLight.position.set(-600, -400, -500);
+        // Luz de contra / borde (Rim Light) para resaltar el contorno cósmico
+        const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.85);
+        rimLight.position.set(-700, -500, -600);
         scene.add(rimLight);
 
         const coreGroup = new THREE.Group();
