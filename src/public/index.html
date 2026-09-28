@@ -2279,9 +2279,9 @@
             node.__threeObj = group;
             return group;
           })
-          // 🌌 SINAPSIS CELESTES CURVAS Y TENUES (Con iluminación dinámica al posar el ratón)
+          // 🌌 SINAPSIS Y ÓRBITAS CELESTES: Órbitas visibles y curvas, Wikilinks invisibles en reposo y revelados al vuelo
           .linkCurvature(link => {
-            return link.isStructural ? 0.12 : 0.18; // Arcos curvados suaves, armónicos y orgánicos (cero varillas rectas rígidas)
+            return link.isStructural ? 0.09 : 0.16; // Curvas orgánicas armoniosas (cero líneas rectas rígidas)
           })
           .linkResolution(8)
           .linkVisibility(link => {
@@ -2290,7 +2290,17 @@
               const tId = (link.target && link.target.id) || link.target;
               return matchingNodeIds.has(sId) && matchingNodeIds.has(tId);
             }
-            return true; // TODAS las líneas siempre presentes y visibles
+            // 🪐 1. Líneas de las órbitas / estructurales: SIEMPRE VISIBLES
+            if (link.isStructural) {
+              return true;
+            }
+
+            // 🔗 2. Líneas de los wikilinks: INVISIBLES en reposo y SOLO se muestran al pasar el ratón (hover) o enfocar
+            const activeId = hoveredNodeId || focusedNodeId;
+            if (!activeId) return false;
+            const sId = (link.source && (link.source.id || link.source)) || '';
+            const tId = (link.target && (link.target.id || link.target)) || '';
+            return (sId === activeId || tId === activeId);
           })
           .linkColor(link => {
             const sId = (link.source && (link.source.id || link.source)) || '';
@@ -2299,7 +2309,7 @@
 
             if (searchActive) return '#38bdf8';
 
-            // 🌟 ILUMINACIÓN DINÁMICA: Cuando el ratón está encima, la línea conectada se vuelve hiper-visible y viva
+            // 🌟 ILUMINACIÓN DINÁMICA: Cuando el ratón está encima, la línea conectada se ilumina con el color activo
             if (activeId && (sId === activeId || tId === activeId)) {
               const s = typeof link.source === 'object' ? link.source : null;
               const t = typeof link.target === 'object' ? link.target : null;
@@ -2307,12 +2317,13 @@
               return activeNode ? (colorMap[activeNode.group] || activeNode.color || '#38bdf8') : '#38bdf8';
             }
 
-            // 🌌 REPOSO: Todas las líneas presentes pero más TENUES, sutiles y elegantes
+            // 🪐 LÍNEAS DE ÓRBITA EN REPOSO: Visibles con presencia nítida pero elegante
             if (link.isStructural) {
-              const alpha = Math.min(0.20, 0.08 * linkBrightness);
+              const alpha = Math.min(0.38, 0.22 * linkBrightness);
               return 'rgba(255, 255, 255, ' + alpha.toFixed(3) + ')';
             } else {
-              const alpha = Math.min(0.22, 0.10 * linkBrightness);
+              // Wikilinks activos revelados
+              const alpha = Math.min(0.75, 0.55 * linkBrightness);
               return 'rgba(56, 189, 248, ' + alpha.toFixed(3) + ')';
             }
           })
@@ -2320,11 +2331,12 @@
             const sId = (link.source && (link.source.id || link.source)) || '';
             const tId = (link.target && (link.target.id || link.target)) || '';
             const activeId = hoveredNodeId || focusedNodeId;
-            // Más visible e intensa en hover
+            // Destello ensanchado e intenso al pasar el ratón
             if (activeId && (sId === activeId || tId === activeId)) {
-              return 1.4; // Claramente visible y destacada
+              return 1.45;
             }
-            return 0.75; // Fina y tenue en reposo
+            // Líneas de órbita con presencia equilibrada
+            return link.isStructural ? 0.95 : 0.8;
           })
           .linkDirectionalParticleResolution(16) // Esferas fotónicas ultra-suaves de alta resolución
           .linkDirectionalParticles(computeLinkParticles)
