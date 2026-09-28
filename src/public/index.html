@@ -1069,6 +1069,56 @@
 
         const SOLAR_ORBIT_RADII = [26, 38, 50, 62, 74, 86];
 
+    // Helper: Cálculo volumétrico 3D de coordenadas orbitales alrededor de una estrella
+    function calculateOrbitLocalPosition(orbit, star) {
+      if (!orbit) return { x: star ? (star.x || star.starTargetX || 0) : 0, y: star ? (star.y || star.starTargetY || 0) : 0, z: star ? (star.z || star.starTargetZ || 0) : 0 };
+      const ang = orbit.currentAngle || 0;
+      const r = orbit.radius || 40;
+      const tilt = orbit.tilt || 0;
+      const node = orbit.nodeAngle || 0;
+      
+      const ox = Math.cos(ang) * r;
+      const oz = Math.sin(ang) * r;
+      const oy = Math.sin(ang * 2) * (r * 0.12 * Math.sin(tilt));
+      
+      const cosT = Math.cos(tilt);
+      const sinT = Math.sin(tilt);
+      const cosN = Math.cos(node);
+      const sinN = Math.sin(node);
+      
+      const y1 = -oz * sinT + oy * cosT;
+      const z1 = oz * cosT + oy * sinT;
+      
+      const lx = ox * cosN - z1 * sinN;
+      const ly = y1;
+      const lz = ox * sinN + z1 * cosN;
+
+      const sx = star ? (star.x !== undefined ? star.x : (star.starTargetX || 0)) : 0;
+      const sy = star ? (star.y !== undefined ? star.y : (star.starTargetY || 0)) : 0;
+      const sz = star ? (star.z !== undefined ? star.z : (star.starTargetZ || 0)) : 0;
+
+      return {
+        x: sx + lx,
+        y: sy + ly,
+        z: sz + lz
+      };
+    }
+
+    // Helper global unificado: ráfagas fotónicas únicamente desde el nodo activo (hover o focus)
+    function computeLinkParticles(link) {
+      if (orbitalSpeedMultiplier === 0) return 0;
+      const activeId = hoveredNodeId || focusedNodeId;
+      if (!activeId) return 0; // CERO chispas por defecto en el fondo
+
+      const sId = (link.source && (link.source.id || link.source)) || '';
+      const tId = (link.target && (link.target.id || link.target)) || '';
+
+      if (sId === activeId || tId === activeId) {
+        return 4; // Ráfaga intensa y fluida de 4 pulsos fotónicos
+      }
+      return 0;
+    }
+
     function setupGalaxyParameters(nodes) {
       if (!nodes || !nodes.length) return;
       // Separar: roots principales (no sub-planetas), sub-planetas, y hojas
@@ -1150,35 +1200,29 @@
 
       window.__systemRingRadii = {};
 
-      // Distribuir hojas sobre anillos orbitales Keplerianos alrededor de su centro (root o sub-planeta)
+      // 🌌 Distribuir hojas en cúmulos planetarios volumétricos 3D (Cúmulos globulares celestes con volumen real)
       Object.entries(groupChildren).forEach(([centerId, children]) => {
         const total = children.length;
-        const numRings = Math.min(16, Math.max(5, Math.ceil(Math.sqrt(total) * 1.5)));
-        // Sub-planetas tienen órbitas más compactas (max 85) que los roots directos (max 125)
         const isSubPlanetOrbit = centerId.startsWith('subplanet_');
-        const maxR = isSubPlanetOrbit ? Math.min(85, 40 + Math.sqrt(total) * 5) : Math.min(125, 68 + Math.sqrt(total) * 4.5);
-        const minR = isSubPlanetOrbit ? 16 : 24;
-        const ringRadii = [];
-        for (let rIdx = 0; rIdx < numRings; rIdx++) {
-          ringRadii.push(minR + (rIdx / Math.max(numRings - 1, 1)) * (maxR - minR));
-        }
-        window.__systemRingRadii[centerId] = ringRadii;
+        const minR = isSubPlanetOrbit ? 18 : 26;
+        const maxR = isSubPlanetOrbit ? Math.min(85, 38 + Math.sqrt(total) * 4.5) : Math.min(135, 65 + Math.sqrt(total) * 4.8);
 
         children.forEach((child, i) => {
-          const ringIdx = i % ringRadii.length;
-          const r = ringRadii[ringIdx];
-          const rx = Math.sin(ringIdx * 1.15) * 0.72;
-          const rz = Math.cos(ringIdx * 1.35) * 0.65;
-          const baseAngle = (i / Math.max(total, 1)) * Math.PI * 2 + (ringIdx * 1.35) + (i * 0.35);
+          const u = (i + 0.5) / total;
+          const r = minR + Math.pow(u, 0.72) * (maxR - minR);
+
+          // Inclinación orbital tridimensional áurea suave (-35° a +35°)
+          const tilt = Math.sin(i * 1.618) * 0.52; 
+          const nodeAngle = (i * 2.39996) % (Math.PI * 2); 
+          const baseAngle = (i / Math.max(total, 1)) * Math.PI * 2 + (i * 0.45);
 
           child.solarOrbit = {
             radius: r,
-            rx: rx,
-            rz: rz,
+            tilt: tilt,
+            nodeAngle: nodeAngle,
             currentAngle: baseAngle,
-            orbitSpeed: 0.012 / Math.sqrt(r / (isSubPlanetOrbit ? 16 : 24))
+            orbitSpeed: (0.009 / Math.sqrt(r / (isSubPlanetOrbit ? 18 : 26))) * (1 + (i % 5) * 0.08)
           };
-          // Guardar referencia al centro orbital del nodo hoja
           child.__orbitCenterId = centerId;
         });
       });
@@ -1236,20 +1280,10 @@
           }
           if (!star) star = rootsMap.get(child.group) || rootsMap.get(child.group + 's') || (child.group && child.group.endsWith('s') && rootsMap.get(child.group.slice(0, -1)));
           if (star && child.solarOrbit) {
-            const ang = child.solarOrbit.currentAngle;
-            const r = child.solarOrbit.radius;
-            const lx0 = Math.cos(ang) * r;
-            const lz0 = Math.sin(ang) * r;
-            const rx = child.solarOrbit.rx || 0;
-            const rz = child.solarOrbit.rz || 0;
-            const y1 = -lz0 * Math.sin(rx);
-            const z1 = lz0 * Math.cos(rx);
-            const lx = lx0 * Math.cos(rz) - y1 * Math.sin(rz);
-            const ly = lx0 * Math.sin(rz) + y1 * Math.cos(rz);
-            const lz = z1;
-            child.x = star.x + lx;
-            child.y = star.y + ly;
-            child.z = star.z + lz;
+            const pos = calculateOrbitLocalPosition(child.solarOrbit, star);
+            child.x = pos.x;
+            child.y = pos.y;
+            child.z = pos.z;
             child.vx = 0; child.vy = 0; child.vz = 0;
           }
         });
@@ -2277,9 +2311,12 @@
 
             if (searchActive) return '#38bdf8';
 
-            // Iluminar la línea conectada al nodo activo con destello vibrante
+            // Iluminar la línea conectada al nodo activo con destello vibrante de su color
             if (activeId && (sId === activeId || tId === activeId)) {
-              return '#38bdf8';
+              const s = typeof link.source === 'object' ? link.source : null;
+              const t = typeof link.target === 'object' ? link.target : null;
+              const activeNode = (s && s.id === activeId) ? s : ((t && t.id === activeId) ? t : null);
+              return activeNode ? (colorMap[activeNode.group] || activeNode.color || '#38bdf8') : '#38bdf8';
             }
 
             if (link.isStructural) {
@@ -2295,34 +2332,30 @@
             const tId = (link.target && (link.target.id || link.target)) || '';
             const activeId = hoveredNodeId || focusedNodeId;
             if (activeId && (sId === activeId || tId === activeId)) {
-              return 1.8;
+              return 2.4; // Sinapsis sobrecargada brillante
             }
             return link.isStructural ? 1.2 : 0.85;
           })
-          // ⚡ CHISPITAS EXCLUSIVAS: ÚNICA Y EXCLUSIVAMENTE desde el nodo con el ratón encima o seleccionado
-          .linkDirectionalParticles(link => {
-            if (orbitalSpeedMultiplier === 0) return 0;
-            const activeId = hoveredNodeId || focusedNodeId;
-            if (!activeId) return 0; // CERO chispas por defecto en el fondo
-
-            const sId = (link.source && (link.source.id || link.source)) || '';
-            const tId = (link.target && (link.target.id || link.target)) || '';
-
-            // Solo brotan chispas si el enlace conecta con la bola que tiene el ratón encima o está seleccionada
-            if (sId === activeId || tId === activeId) {
-              return 4; // Ráfaga intensa de 4 chispas
-            }
-
-            return 0; // Cero absoluto en cualquier otra parte
+          .linkCurvature(link => {
+            return link.isStructural ? 0.04 : 0.12; // Arcos electromagnéticos suaves
           })
+          .linkDirectionalParticleResolution(16) // Esferas fotónicas ultra-suaves de alta resolución
+          .linkDirectionalParticles(computeLinkParticles)
           .linkDirectionalParticleSpeed(link => {
-            return 0.012 * orbitalSpeedMultiplier; // Chispas rápidas, dinámicas y vivas
+            return 0.014 * orbitalSpeedMultiplier;
           })
           .linkDirectionalParticleWidth(link => {
-            return 3.4; // Chispitas gruesas, potentes y bien visibles
+            return 2.8;
           })
           .linkDirectionalParticleColor(link => {
-            return '#ffffff'; // Destello blanco incandescente de alta energía
+            const activeId = hoveredNodeId || focusedNodeId;
+            const s = typeof link.source === 'object' ? link.source : null;
+            const t = typeof link.target === 'object' ? link.target : null;
+            const activeNode = (s && s.id === activeId) ? s : ((t && t.id === activeId) ? t : s || t);
+            if (activeNode) {
+              return colorMap[activeNode.group] || activeNode.color || '#38bdf8';
+            }
+            return '#38bdf8';
           })
           .onNodeClick(node => {
             focusNode(node);
@@ -2549,12 +2582,11 @@
                 if (!star) continue;
 
                 if (!n.solarOrbit) {
-                  // Generar órbita por defecto si no existía
                   const r = SOLAR_ORBIT_RADII[(i % SOLAR_ORBIT_RADII.length)] || 40;
                   n.solarOrbit = {
                     radius: r,
-                    rx: 0.1,
-                    rz: 0.1,
+                    tilt: Math.sin(i * 1.618) * 0.45,
+                    nodeAngle: (i * 2.4) % (Math.PI * 2),
                     currentAngle: (i * 1.2),
                     orbitSpeed: 0.008 / Math.sqrt(r / 26)
                   };
@@ -2562,23 +2594,11 @@
 
                 // Avance orbital armónico continuo y constante
                 n.solarOrbit.currentAngle += (n.solarOrbit.orbitSpeed || 0.006) * orbitalSpeedMultiplier;
-                const ang = n.solarOrbit.currentAngle;
-                const r = n.solarOrbit.radius;
+                const pos = calculateOrbitLocalPosition(n.solarOrbit, star);
 
-                const lx0 = Math.cos(ang) * r;
-                const lz0 = Math.sin(ang) * r;
-                const rx = n.solarOrbit.rx || 0;
-                const rz = n.solarOrbit.rz || 0;
-                const y1 = -lz0 * Math.sin(rx);
-                const z1 = lz0 * Math.cos(rx);
-                const lx = lx0 * Math.cos(rz) - y1 * Math.sin(rz);
-                const ly = lx0 * Math.sin(rz) + y1 * Math.cos(rz);
-                const lz = z1;
-
-                // Posición matemática exacta sobre el anillo de su Sol (inmune a interferencias de fuerzas D3)
-                n.x = star.x + lx;
-                n.y = star.y + ly;
-                n.z = star.z + lz;
+                n.x = pos.x;
+                n.y = pos.y;
+                n.z = pos.z;
                 n.vx = 0;
                 n.vy = 0;
                 n.vz = 0;
@@ -2635,81 +2655,117 @@
           graphInstance.d3Force('link').distance(l => l.isStructural ? 70 : 120).strength(isGalaxyInitial ? 0 : 0.04);
         }
 
-        // Center Hologram
+        // 🌌 NÚCLEO GALÁCTICO CENTRAL (Singularidad Luminous Core)
         const scene = graphInstance.scene();
-        const coreCanvas = document.createElement('canvas');
-        coreCanvas.width = 512;
-        coreCanvas.height = 256;
-        const coreCtx = coreCanvas.getContext('2d');
-        coreCtx.font = 'Bold 44px -apple-system, sans-serif';
-        coreCtx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-        coreCtx.textAlign = 'center';
-        coreCtx.textBaseline = 'middle';
-        coreCtx.fillText('Knowledge Vault', 256, 95);
-        coreCtx.font = '20px -apple-system, sans-serif';
-        coreCtx.fillStyle = 'rgba(56, 189, 248, 0.55)';
-        coreCtx.fillText(data.stats.totalNodes + ' Nodes • ' + data.edges.length + ' Links', 256, 145);
+        const coreGroup = new THREE.Group();
+        window.__galaxyCoreGroup = coreGroup;
 
-        const coreTexture = new THREE.CanvasTexture(coreCanvas);
-        const coreSpriteMat = new THREE.SpriteMaterial({ map: coreTexture, transparent: true, opacity: 0.7 , depthWrite: false });
-        const centerSprite = new THREE.Sprite(coreSpriteMat);
-        centerSprite.scale.set(100, 50, 1);
-        scene.add(centerSprite);
+        // 1. Núcleo incandescente de horizonte de sucesos
+        const coreGeo = new THREE.SphereGeometry(3.2, 32, 24);
+        const coreMat = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.95
+        });
+        const coreSphere = new THREE.Mesh(coreGeo, coreMat);
+        coreGroup.add(coreSphere);
 
-        // Starfield particles
-        const starsGeo = new THREE.BufferGeometry();
-        const starCount = 800;
-        const starPositions = new Float32Array(starCount * 3);
-        for(let i=0; i<starCount*3; i++) {
-          starPositions[i] = (Math.random() - 0.5) * 2600;
+        // 2. Halo de radiación celeste (Glow Sprite radial suave)
+        const glowCanvas = document.createElement('canvas');
+        glowCanvas.width = 256;
+        glowCanvas.height = 256;
+        const gCtx = glowCanvas.getContext('2d');
+        const radGrad = gCtx.createRadialGradient(128, 128, 0, 128, 128, 128);
+        radGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+        radGrad.addColorStop(0.2, 'rgba(56, 189, 248, 0.6)');
+        radGrad.addColorStop(0.5, 'rgba(14, 165, 233, 0.2)');
+        radGrad.addColorStop(1, 'rgba(2, 6, 23, 0)');
+        gCtx.fillStyle = radGrad;
+        gCtx.fillRect(0, 0, 256, 256);
+
+        const glowTexture = new THREE.CanvasTexture(glowCanvas);
+        const glowSpriteMat = new THREE.SpriteMaterial({
+          map: glowTexture,
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+        const glowSprite = new THREE.Sprite(glowSpriteMat);
+        glowSprite.scale.set(65, 65, 1);
+        coreGroup.add(glowSprite);
+
+        // 3. Disco de acreción de fotones sutil
+        const discPts = [];
+        for (let a = 0; a <= 64; a++) {
+          const angle = (a / 64) * Math.PI * 2;
+          discPts.push(new THREE.Vector3(Math.cos(angle) * 18, 0, Math.sin(angle) * 18));
         }
-        starsGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        const starsMat = new THREE.PointsMaterial({ color: 0x475569, size: 1.2, transparent: true, opacity: 0.35 });
-        scene.add(new THREE.Points(starsGeo, starsMat));
+        const discGeo = new THREE.BufferGeometry().setFromPoints(discPts);
+        const discMat = new THREE.LineBasicMaterial({
+          color: 0x38bdf8,
+          transparent: true,
+          opacity: 0.35,
+          blending: THREE.AdditiveBlending
+        });
+        const accretionRing = new THREE.LineLoop(discGeo, discMat);
+        accretionRing.rotation.x = 0.45;
+        coreGroup.add(accretionRing);
+        scene.add(coreGroup);
 
-                // Anillos orbitales de alambre 3D (Armillary Wireframe Spheres per Solar System)
+        // ✨ CAMPO ESTELAR MULTI-CAPA CINEMÁTICO (Deep Space Atmosphere)
+        const starLayersGroup = new THREE.Group();
+
+        // Capa 1: Estrellas lejanas de alta densidad (2.000 estrellas tenues)
+        const bgStarsGeo = new THREE.BufferGeometry();
+        const bgCount = 2000;
+        const bgPos = new Float32Array(bgCount * 3);
+        for (let i = 0; i < bgCount * 3; i += 3) {
+          bgPos[i] = (Math.random() - 0.5) * 3200;
+          bgPos[i + 1] = (Math.random() - 0.5) * 3200;
+          bgPos[i + 2] = (Math.random() - 0.5) * 3200;
+        }
+        bgStarsGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
+        const bgStarsMat = new THREE.PointsMaterial({
+          color: 0x94a3b8,
+          size: 1.1,
+          transparent: true,
+          opacity: 0.45
+        });
+        starLayersGroup.add(new THREE.Points(bgStarsGeo, bgStarsMat));
+
+        // Capa 2: Estrellas brillantes de primera magnitud (350 estrellas con tono cian y oro)
+        const brightGeo = new THREE.BufferGeometry();
+        const brightCount = 350;
+        const brightPos = new Float32Array(brightCount * 3);
+        const brightColors = new Float32Array(brightCount * 3);
+        for (let i = 0; i < brightCount; i++) {
+          const idx = i * 3;
+          brightPos[idx] = (Math.random() - 0.5) * 2400;
+          brightPos[idx + 1] = (Math.random() - 0.5) * 2400;
+          brightPos[idx + 2] = (Math.random() - 0.5) * 2400;
+
+          const isGold = Math.random() > 0.65;
+          brightColors[idx] = isGold ? 1.0 : 0.65;
+          brightColors[idx + 1] = isGold ? 0.88 : 0.85;
+          brightColors[idx + 2] = isGold ? 0.65 : 1.0;
+        }
+        brightGeo.setAttribute('position', new THREE.BufferAttribute(brightPos, 3));
+        brightGeo.setAttribute('color', new THREE.BufferAttribute(brightColors, 3));
+        const brightMat = new THREE.PointsMaterial({
+          vertexColors: true,
+          size: 2.2,
+          transparent: true,
+          opacity: 0.75,
+          blending: THREE.AdditiveBlending
+        });
+        starLayersGroup.add(new THREE.Points(brightGeo, brightMat));
+        scene.add(starLayersGroup);
+
+        // Sin jaula de alambre: Grupo limpio sin maraña de LineLoops
         const galaxyOrbitsMasterGroup = new THREE.Group();
         window.__galaxyOrbitsMasterGroup = galaxyOrbitsMasterGroup;
         const clusterOrbitGroups = {};
         window.__clusterOrbitGroups = clusterOrbitGroups;
-
-        const roots = data.nodes.filter(n => n.isRoot);
-        const rootCount = Math.max(roots.length, 1);
-
-        roots.forEach(rn => {
-          const grpHolder = new THREE.Group();
-          let hexColor = 0x38bdf8;
-          if (rn.color) {
-            try { hexColor = parseInt(rn.color.replace('#', '0x'), 16); } catch(e){}
-          }
-
-          const radii = (window.__systemRingRadii && (window.__systemRingRadii[rn.group] || window.__systemRingRadii[rn.id])) || SOLAR_ORBIT_RADII;
-
-          radii.forEach((r, idx) => {
-            const pts = [];
-            const segments = 64;
-            for (let s = 0; s <= segments; s++) {
-              const angle = (s / segments) * Math.PI * 2;
-              pts.push(new THREE.Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r));
-            }
-            const ringGeo = new THREE.BufferGeometry().setFromPoints(pts);
-            const ringMat = new THREE.LineBasicMaterial({
-              color: hexColor,
-              transparent: true,
-              opacity: 0.22,
-              blending: THREE.AdditiveBlending
-            });
-            const ringLine = new THREE.LineLoop(ringGeo, ringMat);
-            ringLine.rotation.x = Math.sin(idx * 1.15) * 0.72;
-            ringLine.rotation.z = Math.cos(idx * 1.35) * 0.65;
-            grpHolder.add(ringLine);
-          });
-
-          clusterOrbitGroups[rn.group] = grpHolder;
-          clusterOrbitGroups[rn.id] = grpHolder;
-          galaxyOrbitsMasterGroup.add(grpHolder);
-        });
-        galaxyOrbitsMasterGroup.visible = (currentMode === 'galaxy');
         scene.add(galaxyOrbitsMasterGroup);
 
         const renderer = graphInstance.renderer();
@@ -3018,21 +3074,7 @@
       if (label) label.textContent = particleDensityHigh ? 'Particles: High' : 'Particles: Low';
       // Force re-render of particles
       if (graphInstance) {
-        const divisor = particleDensityHigh ? 3 : 10;
-        graphInstance.linkDirectionalParticles(link => {
-          if (orbitalSpeedMultiplier === 0) return 0;
-          if (link.isStructural) {
-            if (graphData.nodes.length > 30) {
-              const tIdStr = String((link.target && link.target.id) || link.target);
-              let hash = 0;
-              for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % divisor;
-              return (hash === 0) ? 2 : 0;
-            }
-            return 2;
-          }
-          if (focusedNodeId && (link.source.id === focusedNodeId || link.target.id === focusedNodeId)) return 1;
-          return 0;
-        });
+        graphInstance.linkDirectionalParticles(computeLinkParticles);
       }
     }
 
@@ -3215,24 +3257,7 @@
           const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
           return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
         });
-        graphInstance.linkDirectionalParticles(link => {
-          if (orbitalSpeedMultiplier === 0) return 0;
-          if (searchActive) {
-            const sId = (link.source && link.source.id) || link.source;
-            const tId = (link.target && link.target.id) || link.target;
-            if (!matchingNodeIds.has(sId) || !matchingNodeIds.has(tId)) return 0;
-          }
-          if (link.isStructural) {
-            if (graphData.nodes.length > 30) {
-               const tIdStr = String((link.target && link.target.id) || link.target);
-               let hash = 0;
-               for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % 10;
-               if (hash !== 0) return 0;
-            }
-            return 2;
-          }
-          return 0;
-        });
+        graphInstance.linkDirectionalParticles(computeLinkParticles);
       }
     }
 
@@ -3362,24 +3387,7 @@
           const alpha = link.isStructural ? Math.min(0.65, 0.38 * linkBrightness) : Math.min(0.70, 0.45 * linkBrightness);
           return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
         });
-        graphInstance.linkDirectionalParticles(link => {
-          if (orbitalSpeedMultiplier === 0) return 0;
-          if (searchActive) {
-            const sId = (link.source && link.source.id) || link.source;
-            const tId = (link.target && link.target.id) || link.target;
-            if (!matchingNodeIds.has(sId) || !matchingNodeIds.has(tId)) return 0;
-          }
-          if (link.isStructural) {
-            if (graphData.nodes.length > 30) {
-               const tIdStr = String((link.target && link.target.id) || link.target);
-               let hash = 0;
-               for (let i = 0; i < tIdStr.length; i++) hash = (hash + tIdStr.charCodeAt(i)) % 10;
-               if (hash !== 0) return 0;
-            }
-            return 2;
-          }
-          return 0;
-        });
+        graphInstance.linkDirectionalParticles(computeLinkParticles);
       }
     }
 
