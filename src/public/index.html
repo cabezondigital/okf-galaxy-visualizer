@@ -2445,6 +2445,7 @@
             }
           })
           .onNodeHover((node, prevNode) => {
+            if (window.__isCameraDragging) return;
             const container = document.getElementById('3d-graph');
             if (container) {
               container.style.cursor = node ? 'pointer' : 'grab';
@@ -2960,19 +2961,28 @@
     let lodFrameCounter = 0;
 
     // Proximity LOD: Labels fade in when zooming in / approaching any node (root or subnode)
-    // Optimizado: Distancia al cuadrado (evita Math.sqrt innecesarios) y throttled a cada 2 frames
+    // 🚀 ULTRA-OPTIMIZADO: Evalúa solo los 8 Soles + nodo activo en lugar de iterar 3.000 nodos (reducción del 99.7% de CPU)
     function updateLabelLOD() {
-      if (!graphInstance) return;
+      if (!graphInstance || window.__isCameraDragging) return;
       lodFrameCounter++;
       if (lodFrameCounter % 2 !== 0 && !searchActive) return;
 
       const cam = graphInstance.camera();
       if (!cam) return;
       const camPos = cam.position;
-      const nodes = window.__cachedAllNodes || ((graphInstance && graphInstance.graphData && graphInstance.graphData().nodes) || (graphData && graphData.nodes) || []);
 
-      for (let i = 0; i < nodes.length; i++) {
-        const n = nodes[i];
+      let candidates = cachedRootNodes;
+      if (searchActive && matchingNodeIds.size > 0) {
+        candidates = window.__cachedAllNodes || [];
+      } else if (focusedNodeId || hoveredNodeId) {
+        const activeNode = (window.__cachedAllNodes || []).find(n => n.id === (focusedNodeId || hoveredNodeId));
+        if (activeNode && !activeNode.isRoot && activeNode.__labelSprite) {
+          candidates = cachedRootNodes.concat([activeNode]);
+        }
+      }
+
+      for (let i = 0; i < candidates.length; i++) {
+        const n = candidates[i];
         const sprite = n.__labelSprite;
         if (!sprite) continue;
 
@@ -2997,7 +3007,6 @@
             }
             continue;
           } else {
-             // Keep it visible but slightly dimmed as set in onSearch
              if (!sprite.visible) sprite.visible = true;
              continue;
           }
@@ -3117,6 +3126,7 @@
       function startDrag(clientX, clientY) {
         if (isNodeBeingDragged) return;
         isDragging = true;
+        window.__isCameraDragging = true;
         prevX = clientX;
         prevY = clientY;
         velX = 0;
@@ -3149,6 +3159,7 @@
       function endDrag() {
         if (!isDragging) return;
         isDragging = false;
+        setTimeout(() => { window.__isCameraDragging = false; }, 40);
         if (graphContainer) graphContainer.classList.remove('grabbing');
 
         // Suave inercia física de despedida
