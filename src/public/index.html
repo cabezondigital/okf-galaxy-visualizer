@@ -2241,6 +2241,14 @@
             isStructural: !!e.isStructural
           }));
 
+        // 🎯 GEOMETRÍA Y MATERIAL DE HIT AREA COMPARTIDOS (0 asignaciones en runtime)
+        const SHARED_HIT_GEO = new THREE.SphereGeometry(1, 8, 6);
+        const SHARED_HIT_MAT = new THREE.MeshBasicMaterial({
+          transparent: true,
+          opacity: 0.0001,
+          depthWrite: false
+        });
+
         const elem = document.getElementById('3d-graph');
         graphInstance = ForceGraph3D()(elem)
           .graphData({ nodes: data.nodes, links: formattedLinks })
@@ -2322,52 +2330,33 @@
               node.__labelSprite = rootSprite;
               group.add(rootSprite);
 
+              group.scale.set(nodeScaleMultiplier, nodeScaleMultiplier, nodeScaleMultiplier);
+              node.__threeObj = group;
+              return group;
+
             } else {
               // ==============================================================
-              // 🪐 SUBNODOS PLANETARIOS (Delicados y nítidos)
+              // 🪐 SUBNODOS PLANETARIOS (Renderizados en 1 único InstancedMesh)
               // ==============================================================
               const powerLevel = Math.min(10, degree + Math.round((node.size || 20) / 10));
               const baseSize = Math.max(0.7, Math.min(1.35, 0.65 + Math.log2(powerLevel + 1) * 0.18));
-
-              // 🪐 Esfera planetaria con volumen cósmico real (Sombra sutil, brillo satinado y atmósfera)
-              const planetTex = getPlanetTexture(nodeColor);
-              const planetMat = new THREE.SpriteMaterial({
-                map: planetTex,
-                transparent: true,
-                depthWrite: false
-              });
-              const planetSprite = new THREE.Sprite(planetMat);
-              // Proporción orbital (Modo Galaxia): Delicada y armónica respecto al Sol central
               const orbitalScale = Math.max(1.1, Math.min(1.85, (0.75 + Math.log2(powerLevel + 1) * 0.16) * 1.25));
-              // Proporción cortical (Modo Cortex): Visible, definida y con el tamaño previo sobre la corteza neuronal
               const cortexScale = Math.max(2.2, Math.min(3.6, (0.85 + Math.log2(powerLevel + 1) * 0.20) * 2.3));
-
               const activeScale = (currentMode === 'spherical') ? cortexScale : orbitalScale;
-              planetSprite.scale.set(activeScale, activeScale, 1);
-              node.__planetSprite = planetSprite;
+
               node.__orbitalScale = orbitalScale;
               node.__cortexScale = cortexScale;
               node.__basePlanetScale = activeScale;
-              group.add(planetSprite);
-
-              // 🎯 HIT AREA GENEROSA INVISIBLE: Comodidad máxima de click
-              const hitGeo = new THREE.SphereGeometry(Math.max(6.5, cortexScale * 1.8), 12, 10);
-              const hitMat = new THREE.MeshBasicMaterial({
-                transparent: true,
-                opacity: 0.0001,
-                depthWrite: false
-              });
-              const hitMesh = new THREE.Mesh(hitGeo, hitMat);
-              group.add(hitMesh);
-
-              // 🌟 Nombres bajo demanda (Hover / Clic): la galaxia se ve limpia y ahorra el 90% de memoria
               node.__baseSize = baseSize;
               node.__labelSprite = null;
-            }
 
-            group.scale.set(nodeScaleMultiplier, nodeScaleMultiplier, nodeScaleMultiplier);
-            node.__threeObj = group;
-            return group;
+              // 🎯 Hit Proxy ultraligero que comparte geometría y material para clicks y hover instantáneos
+              const hitMesh = new THREE.Mesh(SHARED_HIT_GEO, SHARED_HIT_MAT);
+              const hitRadius = Math.max(6.5, cortexScale * 1.8);
+              hitMesh.scale.set(hitRadius, hitRadius, hitRadius);
+              node.__threeObj = hitMesh;
+              return hitMesh;
+            }
           })
           // 🌌 SINAPSIS Y ÓRBITAS CELESTES: Órbitas visibles y curvas, Wikilinks invisibles en reposo y revelados al vuelo
           .linkCurvature(link => {
@@ -2761,6 +2750,36 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
         scene.add(ambientLight);
 
+        // 🪐 INSTANCED PLANET MESH (De 6.000 draw calls a 1 sola llamada en GPU)
+        const cachedSubNodes = (data.nodes || []).filter(n => !n.isRoot);
+        window.__cachedSubNodes = cachedSubNodes;
+
+        if (window.__planetInstancedMesh) {
+          scene.remove(window.__planetInstancedMesh);
+          if (window.__planetInstancedMesh.geometry) window.__planetInstancedMesh.geometry.dispose();
+          if (window.__planetInstancedMesh.material) window.__planetInstancedMesh.material.dispose();
+        }
+
+        const planetInstancedGeo = new THREE.SphereGeometry(1, 14, 10);
+        const planetInstancedMat = new THREE.MeshLambertMaterial({
+          transparent: true,
+          opacity: 0.96,
+          depthWrite: false
+        });
+        const instancedPlanets = new THREE.InstancedMesh(planetInstancedGeo, planetInstancedMat, Math.max(cachedSubNodes.length, 10));
+        instancedPlanets.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+        for (let i = 0; i < cachedSubNodes.length; i++) {
+          const node = cachedSubNodes[i];
+          node.__instanceIndex = i;
+          const colHex = colorMap[node.group] || node.color || '#38bdf8';
+          instancedPlanets.setColorAt(i, new THREE.Color(colHex));
+        }
+        if (instancedPlanets.instanceColor) instancedPlanets.instanceColor.needsUpdate = true;
+        scene.add(instancedPlanets);
+        window.__planetInstancedMesh = instancedPlanets;
+        window.__instancedDummy = new THREE.Object3D();
+
         const coreGroup = new THREE.Group();
         window.__galaxyCoreGroup = coreGroup;
 
@@ -3022,6 +3041,31 @@
 
         applyCameraPosition();
         updateLabelLOD();
+
+        // 🪐 Actualización ultra-fluida de InstancedMesh (1 Draw Call para 3.000 planetas)
+        if (window.__planetInstancedMesh && window.__cachedSubNodes && window.__cachedSubNodes.length > 0) {
+          const im = window.__planetInstancedMesh;
+          const subNodes = window.__cachedSubNodes;
+          const dummy = window.__instancedDummy || (window.__instancedDummy = new THREE.Object3D());
+          const isCortex = (currentMode === 'spherical');
+          const scaleMult = (typeof nodeScaleMultiplier !== 'undefined') ? nodeScaleMultiplier : 1.0;
+
+          for (let i = 0; i < subNodes.length; i++) {
+            const node = subNodes[i];
+            if (searchActive && !matchingNodeIds.has(node.id)) {
+              dummy.scale.set(0.0001, 0.0001, 0.0001);
+            } else {
+              const baseScale = isCortex ? (node.__cortexScale || 2.4) : (node.__orbitalScale || 1.35);
+              const isHovered = (node.id === hoveredNodeId);
+              const s = (isHovered ? baseScale * 1.4 : baseScale) * scaleMult;
+              dummy.scale.set(s, s, s);
+            }
+            dummy.position.set(node.x || 0, node.y || 0, node.z || 0);
+            dummy.updateMatrix();
+            im.setMatrixAt(i, dummy.matrix);
+          }
+          im.instanceMatrix.needsUpdate = true;
+        }
 
         // Actualizar posición de los anillos orbitales siguiendo a sus Soles (cero asignación de memoria en tick)
         if (window.__galaxyOrbitsMasterGroup) {
@@ -3368,6 +3412,17 @@
           return link.isStructural ? ('rgba(255, 255, 255, ' + alpha.toFixed(3) + ')') : ('rgba(56, 189, 248, ' + alpha.toFixed(3) + ')');
         });
         graphInstance.linkDirectionalParticles(computeLinkParticles);
+
+        // 🪐 Restaurar colores en InstancedMesh tras limpiar búsqueda
+        if (window.__planetInstancedMesh && window.__cachedSubNodes) {
+          const im = window.__planetInstancedMesh;
+          const subNodes = window.__cachedSubNodes;
+          for (let i = 0; i < subNodes.length; i++) {
+            const n = subNodes[i];
+            im.setColorAt(i, new THREE.Color(colorMap[n.group] || n.color || '#38bdf8'));
+          }
+          if (im.instanceColor) im.instanceColor.needsUpdate = true;
+        }
       }
     }
 
@@ -3428,6 +3483,23 @@
 
       console.log('Search for:', q);
       console.log('matchingNodeIds contains:', Array.from(matchingNodeIds));
+
+      // 🪐 Actualizar colores y visibilidad en InstancedMesh durante búsqueda
+      if (window.__planetInstancedMesh && window.__cachedSubNodes) {
+        const im = window.__planetInstancedMesh;
+        const subNodes = window.__cachedSubNodes;
+        for (let i = 0; i < subNodes.length; i++) {
+          const n = subNodes[i];
+          if (n.__searchMatch) {
+            im.setColorAt(i, new THREE.Color('#ffffff'));
+          } else if (n.__searchConnected) {
+            im.setColorAt(i, new THREE.Color(colorMap[n.group] || n.color || '#38bdf8'));
+          } else {
+            im.setColorAt(i, new THREE.Color('#1e293b'));
+          }
+        }
+        if (im.instanceColor) im.instanceColor.needsUpdate = true;
+      }
       
       // 3. OCULTAR TODOS LOS NODOS Y SUBNODOS SIN RELACIÓN
       nodes.forEach(n => {
